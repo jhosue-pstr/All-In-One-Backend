@@ -25,6 +25,9 @@ jobs:
       - name: Run tests with coverage
         run: pytest --cov=app --cov-report=xml
 
+      - name: Debug files
+        run: ls -la
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
@@ -33,4 +36,6 @@ jobs:
           args: >
             -Dsonar.projectKey=all-in-one-backend
             -Dsonar.organization=jhosue-pstr
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=app
+            -Dsonar.tests=test
+            -Dsonar.python.coverage.reportPaths=./coverage.xml
