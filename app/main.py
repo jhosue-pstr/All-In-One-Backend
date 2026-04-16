@@ -1,11 +1,26 @@
-from fastapi import FastAPI
-# from api.auth import router as auth_router
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from app.db.database import engine, get_db, Base
+from app.models.usuario import User
+from app.api.auth import router as auth_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# app.include_router(auth_router)
+app.include_router(auth_router, prefix="/api")
 
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}

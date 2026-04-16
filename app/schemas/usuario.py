@@ -9,12 +9,12 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    contraseña: str
+    contrasena: str
 
 
 class UserLogin(BaseModel):
     correo: EmailStr
-    contraseña: str
+    contrasena: str
 
 
 class UserResponse(UserBase):
