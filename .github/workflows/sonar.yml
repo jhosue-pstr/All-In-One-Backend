@@ -4,13 +4,17 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build:
+  sonarcloud:
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,31 +31,16 @@ jobs:
           DATABASE_URL: sqlite:///./test.db
         run: pytest --cov=app --cov-report=xml --cov-config=.coveragerc
 
-      - name: Check coverage report exists
-        run: |
-          echo "=== Checking coverage.xml ==="
-          if [ -f coverage.xml ]; then
-            echo "✓ coverage.xml found!"
-            echo "=== First 30 lines of coverage.xml ==="
-            head -30 coverage.xml
-            echo "=== Checking for source paths ==="
-            grep -o 'filename="[^"]*"' coverage.xml | head -5
-          else
-            echo "✗ coverage.xml NOT found!"
-            exit 1
-          fi
-          echo "=== Project structure ==="
-          find . -type f -name "*.py" | grep -E "(app|test)" | head -20
-
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@0303d6b62e310685c0e34d0b9cde218036885c4d
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_SCANNER_OPTS: -Xmx512m
+        uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
             -Dsonar.projectKey=all-in-one-backend
             -Dsonar.organization=jhosue-pstr
             -Dsonar.sources=app
             -Dsonar.tests=test
+            -Dsonar.python.version=3
             -Dsonar.python.coverage.reportPaths=coverage.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
