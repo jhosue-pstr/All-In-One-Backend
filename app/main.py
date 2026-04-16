@@ -1,3 +1,4 @@
+from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
@@ -25,7 +26,7 @@ def read_root():
 
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+def health_check(db: Annotated[Session, Depends(get_db)]):
     try:
         db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
