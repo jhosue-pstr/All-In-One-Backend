@@ -1,11 +1,12 @@
 [run]
-source = app
+source = ./app
 omit =
     */tests/*
     */test*
     */__pycache__/*
     */.venv/*
     */__init__.py
+relative_files = True
 
 [xml]
 output = coverage.xml
