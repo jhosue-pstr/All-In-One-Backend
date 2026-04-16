@@ -36,6 +36,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=All-In-One-Backend
+            -Dsonar.organization=jhosue-pstr
             -Dsonar.sources=app
             -Dsonar.tests=test
             -Dsonar.python.version=3
