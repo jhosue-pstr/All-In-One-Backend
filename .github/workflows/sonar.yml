@@ -23,6 +23,8 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests with coverage
+        env:
+          DATABASE_URL: sqlite:///./test.db
         run: pytest --cov=app --cov-report=xml
 
       - name: Debug files
