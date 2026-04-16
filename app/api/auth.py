@@ -1,3 +1,4 @@
+from typing import Annotated
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -39,7 +40,10 @@ def authenticate_user(db: Session, correo: str, contrasena: str):
     return user
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[Session, Depends(get_db)]
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -61,7 +65,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 @router.post("/registro", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def registro(user_data: UserCreate, db: Session = Depends(get_db)):
+def registro(
+    user_data: Annotated[UserCreate, Depends()],
+    db: Annotated[Session, Depends(get_db)]
+):
     existing_user = db.query(User).filter(User.correo == user_data.correo).first()
     if existing_user:
         raise HTTPException(
@@ -84,7 +91,10 @@ def registro(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/inicio", response_model=TokenResponse)
-def inicio(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def inicio(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[Session, Depends(get_db)]
+):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -98,5 +108,7 @@ def inicio(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
 
 
 @router.get("/me", response_model=UserResponse)
-def read_users_me(current_user: User = Depends(get_current_user)):
+def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     return current_user

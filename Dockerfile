@@ -5,12 +5,16 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m appuser
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
 
-COPY . .
+COPY app ./app
+COPY .coveragerc .
+
+USER appuser
 
 EXPOSE 8000
 
