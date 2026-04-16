@@ -1,6 +1,6 @@
 from typing import Annotated
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import bcrypt
@@ -66,7 +66,7 @@ def get_current_user(
 
 @router.post("/registro", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def registro(
-    user_data: Annotated[UserCreate, Depends()],
+    user_data: Annotated[UserCreate, Body()],
     db: Annotated[Session, Depends(get_db)]
 ):
     existing_user = db.query(User).filter(User.correo == user_data.correo).first()

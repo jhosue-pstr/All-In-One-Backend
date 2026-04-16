@@ -1,13 +1,20 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from app.db.database import engine, get_db, Base
+from app.db.database import get_db, Base
 from app.models.usuario import User
 from app.api.auth import router as auth_router
 
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.db.database import engine
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router, prefix="/api")
 
