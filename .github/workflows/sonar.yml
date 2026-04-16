@@ -32,14 +32,6 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92
-        with:
-          args: >
-            -Dsonar.projectKey=All-In-One-Backend
-            -Dsonar.organization=jhosue-pstr
-            -Dsonar.sources=app
-            -Dsonar.tests=test
-            -Dsonar.python.version=3
-            -Dsonar.python.coverage.reportPaths=coverage.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
