@@ -35,7 +35,7 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92
         with:
           args: >
-            -Dsonar.projectKey=all-in-one-backend
+            -Dsonar.projectKey=All-In-One-Backend
             -Dsonar.organization=jhosue-pstr
             -Dsonar.sources=app
             -Dsonar.tests=test
