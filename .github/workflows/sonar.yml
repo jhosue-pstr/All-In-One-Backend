@@ -25,10 +25,19 @@ jobs:
       - name: Run tests with coverage
         env:
           DATABASE_URL: sqlite:///./test.db
-        run: pytest --cov=app --cov-report=xml
+        run: pytest --cov=app --cov-report=xml --cov-config=.coveragerc
 
-      - name: Debug files
-        run: ls -la
+      - name: Check coverage report exists
+        run: |
+          echo "=== Checking coverage.xml ==="
+          if [ -f coverage.xml ]; then
+            echo "✓ coverage.xml found!"
+            echo "=== First 30 lines of coverage.xml ==="
+            head -30 coverage.xml
+          else
+            echo "✗ coverage.xml NOT found!"
+            exit 1
+          fi
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0

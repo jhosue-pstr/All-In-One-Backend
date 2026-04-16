@@ -1,0 +1,11 @@
+[run]
+source = app
+omit =
+    */tests/*
+    */test*
+    */__pycache__/*
+    */.venv/*
+    */__init__.py
+
+[xml]
+output = coverage.xml
