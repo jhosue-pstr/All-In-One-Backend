@@ -29,6 +29,9 @@ jobs:
         run: pytest --cov=app --cov-report=xml --cov-report=term
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@7295e71c9583053f5bf40e9d4068a0c974603ec8
+        with:
+          scannerVersion: 4.6.2.2472
+          projectBaseDir: .
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
