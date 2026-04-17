@@ -45,6 +45,15 @@ def client(setup_db):
 
 
 @pytest.fixture
+def db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@pytest.fixture
 def user_data():
     return {
         "correo": "test@example.com",

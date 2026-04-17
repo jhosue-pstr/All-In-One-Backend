@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.db.database import get_db, Base
 from app.models.usuario import User
 from app.api.auth import router as auth_router
+from app.api.plantilla import router as plantilla_router
 
 
 @asynccontextmanager
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router, prefix="/api")
+app.include_router(plantilla_router, prefix="/api")
 
 
 @app.get("/")
