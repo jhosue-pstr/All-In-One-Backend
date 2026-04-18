@@ -4,9 +4,13 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.db.database import get_db, Base
-from app.models.usuario import User
-from app.api.auth import router as auth_router
-from app.api.plantilla import router as plantilla_router
+from app.api import (
+    auth_router,
+    sitio_router,
+    sitio_modulo_router,
+    modulo_router,
+    plantilla_router,
+)
 
 
 @asynccontextmanager
@@ -17,7 +21,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
+app.include_router(modulo_router, prefix="/api")
+app.include_router(sitio_router, prefix="/api")
+app.include_router(sitio_modulo_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(plantilla_router, prefix="/api")
 

@@ -10,6 +10,8 @@ from app.service.plantilla import (
     update_plantilla,
     delete_plantilla,
 )
+from app.api.auth import get_current_user
+from app.models.usuario import User
 
 router = APIRouter(prefix="/plantillas", tags=["plantillas"])
 
@@ -17,6 +19,7 @@ router = APIRouter(prefix="/plantillas", tags=["plantillas"])
 @router.post("", response_model=PlantillaResponse, status_code=201)
 def create(
     data: PlantillaCreate,
+    current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     return create_plantilla(db, data)
@@ -43,6 +46,7 @@ def get_all(db: Annotated[Session, Depends(get_db)]):
 def update(
     plantilla_id: int,
     data: PlantillaUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     obj = update_plantilla(db, plantilla_id, data)
@@ -55,6 +59,7 @@ def update(
 @router.delete("/{plantilla_id}", status_code=200)
 def delete(
     plantilla_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     delete_plantilla(db, plantilla_id)

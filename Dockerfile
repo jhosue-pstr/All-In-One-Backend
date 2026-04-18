@@ -12,7 +12,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
 
 COPY app ./app
-COPY .coveragerc .
 
 USER appuser
 
