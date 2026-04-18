@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional, Any
 from pydantic import BaseModel, ConfigDict
 
@@ -29,7 +28,5 @@ class SitioUpdate(BaseModel):
 
 class SitioResponse(SitioBase):
     id: int
-    created_at: datetime
-    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

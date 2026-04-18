@@ -1,9 +1,15 @@
 from typing import Optional, Any
-from datetime import datetime
-from sqlalchemy import String, Boolean, JSON, DateTime
+from enum import Enum
+from sqlalchemy import String, Boolean, JSON, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base   
+
+
+class Visibilidad(str, Enum):
+    PUBLICA = "PUBLICA"
+    PRIVADA = "PRIVADA"
+
 
 class Plantilla(Base): 
     __tablename__ = "plantillas"
@@ -26,5 +32,10 @@ class Plantilla(Base):
 
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    visibilidad: Mapped[Visibilidad] = mapped_column(
+        SQLEnum(Visibilidad),
+        default=Visibilidad.PRIVADA,
+        nullable=False
+    )
+
+    id_usuario: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)

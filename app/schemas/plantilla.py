@@ -1,6 +1,6 @@
-from datetime import datetime
 from typing import Optional, Any
 from pydantic import BaseModel, ConfigDict
+from app.models.plantilla import Visibilidad
 
 
 class PlantillaBase(BaseModel):
@@ -10,6 +10,7 @@ class PlantillaBase(BaseModel):
     configuracion: Optional[dict[str, Any]] = None
     miniatura: Optional[str] = None
     activo: Optional[bool] = True
+    visibilidad: Optional[Visibilidad] = Visibilidad.PRIVADA
 
 
 class PlantillaCreate(PlantillaBase):
@@ -23,11 +24,11 @@ class PlantillaUpdate(BaseModel):
     configuracion: Optional[dict[str, Any]] = None
     miniatura: Optional[str] = None
     activo: Optional[bool] = None
+    visibilidad: Optional[Visibilidad] = None
 
 
 class PlantillaResponse(PlantillaBase):
     id: int
-    created_at: datetime
-    updated_at: datetime
+    id_usuario: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)

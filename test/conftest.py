@@ -67,3 +67,18 @@ def user_data():
         "nombre": "Test",
         "apellido": "User"
     }
+
+
+@pytest.fixture
+def user(db):
+    from app.models.usuario import User
+    user = User(
+        correo="test@example.com",
+        contrasena="123456",
+        nombre="Test",
+        apellido="User"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
