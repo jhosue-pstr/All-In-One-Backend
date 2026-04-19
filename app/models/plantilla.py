@@ -1,6 +1,6 @@
 from typing import Optional, Any
 from enum import Enum
-from sqlalchemy import String, Boolean, JSON, ForeignKey, Enum as SQLEnum
+from sqlalchemy import String, Boolean, JSON, ForeignKey, Enum as SQLEnum, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base   
@@ -28,7 +28,7 @@ class Plantilla(Base):
 
     configuracion: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
-    miniatura: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    miniatura: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 

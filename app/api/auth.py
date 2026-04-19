@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 
 from app.db.database import get_db
 from app.models.usuario import User
-from app.schemas.usuario import UserCreate, UserResponse, TokenResponse
+from app.schemas.usuario import UserCreate, UserResponse, TokenResponse, UserUpdate
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -111,4 +111,22 @@ def inicio(
 def read_users_me(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
+    return current_user
+
+
+@router.put("/me", response_model=UserResponse)
+def update_user(
+    user_data: UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
+):
+    if user_data.nombre is not None:
+        current_user.nombre = user_data.nombre
+    if user_data.apellido is not None:
+        current_user.apellido = user_data.apellido
+    if user_data.contrasena is not None:
+        current_user.contrasena = get_password_hash(user_data.contrasena)
+    
+    db.commit()
+    db.refresh(current_user)
     return current_user

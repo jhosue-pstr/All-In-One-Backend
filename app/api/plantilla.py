@@ -1,6 +1,11 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+import os
+import uuid
+from pathlib import Path
 from app.db.database import get_db
 from app.schemas.plantilla import PlantillaCreate, PlantillaUpdate, PlantillaResponse
 from app.service.plantilla import (
@@ -18,6 +23,9 @@ from app.models.usuario import User
 from app.models.plantilla import Visibilidad
 
 router = APIRouter(prefix="/plantillas", tags=["plantillas"])
+
+UPLOAD_DIR = Path("media/plantillas")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.get("/publicas", response_model=list[PlantillaResponse])
@@ -92,3 +100,37 @@ def delete(
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta plantilla")
     delete_plantilla(db, plantilla_id)
     return {"message": "Plantilla eliminada"}
+
+
+@router.post("/{plantilla_id}/miniatura")
+def upload_miniatura(
+    plantilla_id: int,
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    file: UploadFile = File(...)
+):
+    if not es_propietario(db, plantilla_id, current_user.id):
+        raise HTTPException(status_code=403, detail="No tienes permiso para editar esta plantilla")
+    
+    obj = get_plantilla(db, plantilla_id)
+    if not obj:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+    
+    file_ext = file.filename.split(".")[-1] if "." in file.filename else "png"
+    if file_ext not in ["png", "jpg", "jpeg", "webp"]:
+        file_ext = "png"
+    
+    file_name = f"{uuid.uuid4()}.{file_ext}"
+    file_path = UPLOAD_DIR / file_name
+    
+    with open(file_path, "wb") as f:
+        content = file.file.read()
+        f.write(content)
+    
+    base_url = str(request.base_url).rstrip("/")
+    url = f"{base_url}/media/plantillas/{file_name}"
+    
+    update_plantilla(db, plantilla_id, PlantillaUpdate(miniatura=url))
+    
+    return {"url": url}

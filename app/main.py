@@ -2,8 +2,10 @@ from typing import Annotated
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from pathlib import Path
 from app.db.database import get_db, Base
 from app.api import (
     auth_router,
@@ -50,3 +52,8 @@ def health_check(db: Annotated[Session, Depends(get_db)]):
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+
+
+media_dir = Path("media")
+media_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory="media"), name="media")

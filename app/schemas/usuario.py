@@ -12,6 +12,12 @@ class UserCreate(UserBase):
     contrasena: str
 
 
+class UserUpdate(BaseModel):
+    nombre: str | None = None
+    apellido: str | None = None
+    contrasena: str | None = None
+
+
 class UserLogin(BaseModel):
     correo: EmailStr
     contrasena: str
