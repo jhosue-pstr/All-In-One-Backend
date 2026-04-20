@@ -1,51 +1,3 @@
-# name: SonarCloud Backend
-
-# on:
-#   push:
-#     branches: ["main"]
-#   pull_request:
-
-# jobs:
-#   Analysis:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - uses: actions/checkout@v4
-
-#       - name: Setup Python
-#         uses: actions/setup-python@v5
-#         with:
-#           python-version: 3.12
-
-#       - name: Install dependencies
-#         run: |
-#           pip install -r requirements.txt
-#           pip install pytest pytest-cov
-
-#       - name: Run tests with coverage
-#         run: |
-#           pytest --cov=app --cov-report=xml --cov-report=term
-#           sed -i 's|/home/runner/work/All-In-One-Backend/All-In-One-Backend|.|g' coverage.xml
-
-#       - name: Debug files (IMPORTANTE)
-#         run: |
-#           ls -la
-
-#       - name: SonarCloud Scan
-#         uses: SonarSource/sonarqube-scan-action@v2
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#           SONAR_HOST_URL: https://sonarcloud.io
-#         with:
-#           args: >
-#             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
-#             -Dsonar.organization=jhosue-pstr
-#             -Dsonar.sources=.
-#             -Dsonar.projectBaseDir=/github/workspace
-#             -Dsonar.exclusions=test/**,media/**,*.db
-#             -Dsonar.python.coverage.reportPaths=coverage.xml
-
 name: SonarCloud Backend
 
 on:
@@ -58,37 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 🔹 Checkout completo (fix shallow clone)
-      - name: Checkout code
-        uses: actions/checkout@3df4ab11b4c7a6b6f5c5b2f4c7e2b3d9a8f1c2d3 # v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      # 🔹 Python setup (fijado con SHA)
       - name: Setup Python
-        uses: actions/setup-python@82c7e631bb3cdc3a0e1c2c6fbdc5cdd8f04fbf1d # v5
+        uses: actions/setup-python@v5
         with:
           python-version: 3.12
 
-      # 🔹 Dependencias
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      # 🔹 Tests + coverage (fix rutas Sonar)
       - name: Run tests with coverage
         run: |
           pytest --cov=app --cov-report=xml --cov-report=term
           sed -i 's|/home/runner/work/All-In-One-Backend/All-In-One-Backend|.|g' coverage.xml
 
-      # 🔹 Debug (puedes borrar luego)
-      - name: Debug files
-        run: ls -la
+      - name: Debug files (IMPORTANTE)
+        run: |
+          ls -la
 
-      # 🔹 SonarCloud (fijado con SHA)
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@2b4e0b5c9e6f7c9b1f6d6f8e7b8f2c0d4f6a2b1c # v2
+        uses: SonarSource/sonarqube-scan-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -101,4 +45,3 @@ jobs:
             -Dsonar.projectBaseDir=/github/workspace
             -Dsonar.exclusions=test/**,media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.python.version=3.12
