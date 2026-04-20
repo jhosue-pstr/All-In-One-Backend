@@ -131,7 +131,7 @@ def upload_miniatura(
     request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
-    file: UploadFile = File(...)
+    file: Annotated[UploadFile, File(...)]
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
         raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
