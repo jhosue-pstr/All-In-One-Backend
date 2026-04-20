@@ -100,9 +100,3 @@ def test_render_sitio_vacio(client: TestClient, db):
 
     assert response.status_code == 200
     assert "construcción" in response.text.lower()
-
-
-def test_root(client: TestClient):
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "AllInOne" in response.text

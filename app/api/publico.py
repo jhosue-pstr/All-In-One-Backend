@@ -45,8 +45,3 @@ def render_sitio(slug: str, request: Request, db: Session = Depends(get_db)):
     html_renderizado = injectar_recursos(html, css, js)
     
     return HTMLResponse(html_renderizado)
-
-
-@router.get("/", response_class=HTMLResponse)
-def root():
-    return HTMLResponse("<html><body><h1>AllInOne Platform</h1></body></html>")
