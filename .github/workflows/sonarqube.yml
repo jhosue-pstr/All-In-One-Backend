@@ -1,3 +1,51 @@
+# name: SonarCloud Backend
+
+# on:
+#   push:
+#     branches: ["main"]
+#   pull_request:
+
+# jobs:
+#   Analysis:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: 3.12
+
+#       - name: Install dependencies
+#         run: |
+#           pip install -r requirements.txt
+#           pip install pytest pytest-cov
+
+#       - name: Run tests with coverage
+#         run: |
+#           pytest --cov=app --cov-report=xml --cov-report=term
+#           sed -i 's|/home/runner/work/All-In-One-Backend/All-In-One-Backend|.|g' coverage.xml
+
+#       - name: Debug files (IMPORTANTE)
+#         run: |
+#           ls -la
+
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarqube-scan-action@v2
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#           SONAR_HOST_URL: https://sonarcloud.io
+#         with:
+#           args: >
+#             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
+#             -Dsonar.organization=jhosue-pstr
+#             -Dsonar.sources=.
+#             -Dsonar.projectBaseDir=/github/workspace
+#             -Dsonar.exclusions=test/**,media/**,*.db
+#             -Dsonar.python.coverage.reportPaths=coverage.xml
+
 name: SonarCloud Backend
 
 on:
@@ -11,6 +59,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 🔥 quita warning de shallow clone
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -27,10 +77,6 @@ jobs:
           pytest --cov=app --cov-report=xml --cov-report=term
           sed -i 's|/home/runner/work/All-In-One-Backend/All-In-One-Backend|.|g' coverage.xml
 
-      - name: Debug files (IMPORTANTE)
-        run: |
-          ls -la
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v2
         env:
@@ -41,7 +87,8 @@ jobs:
           args: >
             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
             -Dsonar.organization=jhosue-pstr
-            -Dsonar.sources=.
-            -Dsonar.projectBaseDir=/github/workspace
-            -Dsonar.exclusions=test/**,media/**,*.db
+            -Dsonar.sources=app
+            -Dsonar.tests=test
+            -Dsonar.exclusions=media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.version=3.12
