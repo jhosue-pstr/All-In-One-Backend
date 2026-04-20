@@ -15,6 +15,7 @@ from app.api import (
     modulo_router,
     plantilla_router,
 )
+from app.api.publico import router as público_router
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.include_router(sitio_router, prefix="/api")
 app.include_router(sitio_modulo_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(plantilla_router, prefix="/api")
+app.include_router(público_router)
 
 
 @app.get("/")

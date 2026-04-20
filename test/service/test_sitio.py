@@ -2,6 +2,7 @@ from app.schemas.sitio import SitioCreate, SitioUpdate
 from app.service.sitio import (
     create_sitio,
     get_sitio,
+    get_sitio_por_slug,
     get_sitios,
     get_sitios_del_usuario,
     update_sitio,
@@ -201,3 +202,23 @@ def test_get_sitios_del_usuario_vacio(db):
     result = get_sitios_del_usuario(db, user.id)
 
     assert result == []
+
+
+def test_get_sitio_por_slug(db):
+    from app.models.sitio import Sitio
+
+    obj = Sitio(nombre="Mi Sitio Pro", slug="mi-sitio-pro")
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+
+    result = get_sitio_por_slug(db, "mi-sitio-pro")
+
+    assert result is not None
+    assert result.nombre == "Mi Sitio Pro"
+    assert result.slug == "mi-sitio-pro"
+
+
+def test_get_sitio_por_slug_no_existe(db):
+    result = get_sitio_por_slug(db, "no-existe-12345")
+    assert result is None

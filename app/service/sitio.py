@@ -27,6 +27,10 @@ def get_sitio(db: Session, sitio_id: int):
     return db.query(Sitio).filter(Sitio.id == sitio_id).first()
 
 
+def get_sitio_por_slug(db: Session, slug: str):
+    return db.query(Sitio).filter(Sitio.slug == slug).first()
+
+
 def get_sitios(db: Session):
     return db.query(Sitio).all()
 
