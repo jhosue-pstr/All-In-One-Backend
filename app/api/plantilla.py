@@ -27,6 +27,10 @@ router = APIRouter(prefix="/plantillas", tags=["plantillas"])
 UPLOAD_DIR = Path("media/plantillas")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+ERROR_PLANTILLA_NO_ENCONTRADA = "Plantilla no encontrada"
+ERROR_SIN_PERMISO = "No tienes permiso para editar esta plantilla"
+ERROR_SIN_PERMISO_ELIMINAR = "No tienes permiso para eliminar esta plantilla"
+
 
 @router.get("/publicas", response_model=list[PlantillaResponse])
 def get_publicas(db: Annotated[Session, Depends(get_db)]):
@@ -53,16 +57,18 @@ def get_all(
     return get_plantillas_publicas(db)
 
 
-@router.get("/{plantilla_id}", response_model=PlantillaResponse)
+@router.get(
+    "/{plantilla_id}",
+    response_model=PlantillaResponse,
+    responses={404: {"description": "Plantilla no encontrada"}}
+)
 def get_one(
     plantilla_id: int,
     db: Annotated[Session, Depends(get_db)]
 ):
     obj = get_plantilla(db, plantilla_id)
     if not obj:
-        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
-    if obj.visibilidad == Visibilidad.PRIVADA:
-        pass
+        raise HTTPException(status_code=404, detail=ERROR_PLANTILLA_NO_ENCONTRADA)
     return obj
 
 
@@ -75,7 +81,14 @@ def create(
     return create_plantilla(db, data, current_user.id)
 
 
-@router.put("/{plantilla_id}", response_model=PlantillaResponse)
+@router.put(
+    "/{plantilla_id}",
+    response_model=PlantillaResponse,
+    responses={
+        403: {"description": "Sin permiso"},
+        404: {"description": "Plantilla no encontrada"}
+    }
+)
 def update(
     plantilla_id: int,
     data: PlantillaUpdate,
@@ -83,26 +96,36 @@ def update(
     db: Annotated[Session, Depends(get_db)]
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
-        raise HTTPException(status_code=403, detail="No tienes permiso para editar esta plantilla")
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
     obj = update_plantilla(db, plantilla_id, data)
     if not obj:
-        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+        raise HTTPException(status_code=404, detail=ERROR_PLANTILLA_NO_ENCONTRADA)
     return obj
 
 
-@router.delete("/{plantilla_id}", status_code=200)
+@router.delete(
+    "/{plantilla_id}",
+    status_code=200,
+    responses={403: {"description": "Sin permiso para eliminar"}}
+)
 def delete(
     plantilla_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
-        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta plantilla")
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO_ELIMINAR)
     delete_plantilla(db, plantilla_id)
     return {"message": "Plantilla eliminada"}
 
 
-@router.post("/{plantilla_id}/miniatura")
+@router.post(
+    "/{plantilla_id}/miniatura",
+    responses={
+        403: {"description": "Sin permiso"},
+        404: {"description": "Plantilla no encontrada"}
+    }
+)
 def upload_miniatura(
     plantilla_id: int,
     request: Request,
@@ -111,11 +134,11 @@ def upload_miniatura(
     file: UploadFile = File(...)
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
-        raise HTTPException(status_code=403, detail="No tienes permiso para editar esta plantilla")
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
     
     obj = get_plantilla(db, plantilla_id)
     if not obj:
-        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+        raise HTTPException(status_code=404, detail=ERROR_PLANTILLA_NO_ENCONTRADA)
     
     file_ext = file.filename.split(".")[-1] if "." in file.filename else "png"
     if file_ext not in ["png", "jpg", "jpeg", "webp"]:

@@ -22,6 +22,9 @@ router = APIRouter(prefix="/sitios", tags=["Sitios"])
 UPLOAD_DIR = Path("media/sitios")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+ERROR_SITIO_NO_ENCONTRADO = "Sitio no encontrado"
+ERROR_SIN_PERMISO = "No tienes permiso para editar este sitio"
+
 
 @router.post("/", response_model=SitioResponse, status_code=201)
 def crear_sitio(
@@ -45,15 +48,23 @@ def mis_sitios(
     return get_sitios_del_usuario(db, current_user.id)
 
 
-@router.get("/{sitio_id}", response_model=SitioResponse)
+@router.get(
+    "/{sitio_id}",
+    response_model=SitioResponse,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def obtener_sitio(sitio_id: int, db: Annotated[Session, Depends(get_db)]):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
     return sitio
 
 
-@router.put("/{sitio_id}", response_model=SitioResponse)
+@router.put(
+    "/{sitio_id}",
+    response_model=SitioResponse,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def actualizar_sitio(
     sitio_id: int,
     data: SitioUpdate,
@@ -62,12 +73,16 @@ def actualizar_sitio(
 ):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
 
     return update_sitio(db, sitio_id, data)
 
 
-@router.delete("/{sitio_id}", status_code=204)
+@router.delete(
+    "/{sitio_id}",
+    status_code=204,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def eliminar_sitio(
     sitio_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -75,7 +90,7 @@ def eliminar_sitio(
 ):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
 
     delete_sitio(db, sitio_id)
 
@@ -87,7 +102,13 @@ def es_propietario(db: Session, sitio_id: int, usuario_id: int):
     return sitio.id_usuario == usuario_id
 
 
-@router.post("/{sitio_id}/miniatura")
+@router.post(
+    "/{sitio_id}/miniatura",
+    responses={
+        403: {"description": "Sin permiso para editar"},
+        404: {"description": "Sitio no encontrado"}
+    }
+)
 def upload_miniatura(
     sitio_id: int,
     request: Request,
@@ -96,11 +117,11 @@ def upload_miniatura(
     file: UploadFile = File(...)
 ):
     if not es_propietario(db, sitio_id, current_user.id):
-        raise HTTPException(status_code=403, detail="No tienes permiso para editar este sitio")
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
     
     obj = get_sitio(db, sitio_id)
     if not obj:
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
     
     file_ext = file.filename.split(".")[-1] if "." in file.filename else "png"
     if file_ext not in ["png", "jpg", "jpeg", "webp"]:

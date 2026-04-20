@@ -18,7 +18,7 @@ def get_plantilla(db: Session, plantilla_id: int):
     return db.query(Plantilla).filter(Plantilla.id == plantilla_id).first()
 
 
-def get_plantillas(db: Session, user_id: int = None):
+def get_plantillas(db: Session):
     return db.query(Plantilla).all()
 
 

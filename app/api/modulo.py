@@ -20,6 +20,8 @@ from app.models.usuario import User
 
 router = APIRouter(prefix="/modulos", tags=["Modulos"])
 
+ERROR_MODULO_NO_ENCONTRADO = "Modulo no encontrado"
+
 
 @router.post("/", response_model=ModuloResponse, status_code=201)
 def crear_modulo(
@@ -35,15 +37,23 @@ def listar_modulos(db: Annotated[Session, Depends(get_db)]):
     return get_modulos(db)
 
 
-@router.get("/{modulo_id}", response_model=ModuloResponse)
+@router.get(
+    "/{modulo_id}",
+    response_model=ModuloResponse,
+    responses={404: {"description": "Modulo no encontrado"}}
+)
 def obtener_modulo(modulo_id: int, db: Annotated[Session, Depends(get_db)]):
     modulo = get_modulo(db, modulo_id)
     if not modulo:
-        raise HTTPException(status_code=404, detail="Modulo no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_MODULO_NO_ENCONTRADO)
     return modulo
 
 
-@router.put("/{modulo_id}", response_model=ModuloResponse)
+@router.put(
+    "/{modulo_id}",
+    response_model=ModuloResponse,
+    responses={404: {"description": "Modulo no encontrado"}}
+)
 def actualizar_modulo(
     modulo_id: int,
     data: ModuloUpdate,
@@ -52,12 +62,16 @@ def actualizar_modulo(
 ):
     modulo = get_modulo(db, modulo_id)
     if not modulo:
-        raise HTTPException(status_code=404, detail="Modulo no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_MODULO_NO_ENCONTRADO)
 
     return update_modulo(db, modulo_id, data)
 
 
-@router.delete("/{modulo_id}", status_code=204)
+@router.delete(
+    "/{modulo_id}",
+    status_code=204,
+    responses={404: {"description": "Modulo no encontrado"}}
+)
 def eliminar_modulo(
     modulo_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -65,6 +79,6 @@ def eliminar_modulo(
 ):
     modulo = get_modulo(db, modulo_id)
     if not modulo:
-        raise HTTPException(status_code=404, detail="Modulo no encontrado")
+        raise HTTPException(status_code=404, detail=ERROR_MODULO_NO_ENCONTRADO)
 
     delete_modulo(db, modulo_id)
