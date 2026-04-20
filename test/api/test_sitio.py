@@ -104,3 +104,91 @@ def test_delete_sitio_not_found(client, user_data):
     headers = get_auth_header(client, user_data)
     response = client.delete("/api/sitios/9999", headers=headers)
     assert response.status_code == 404
+
+
+def test_mis_sitios(client, user_data):
+    headers = get_auth_header(client, user_data)
+    client.post("/api/sitios", json={"nombre": "Mi Sitio", "slug": "mi-sitio"}, headers=headers)
+    client.post("/api/sitios", json={"nombre": "Otro", "slug": "otro-sitio"}, headers=headers)
+
+    response = client.get("/api/sitios/mis-sitios", headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["nombre"] == "Mi Sitio"
+
+
+def test_mis_sitios_vacio(client, user_data):
+    headers = get_auth_header(client, user_data)
+
+    response = client.get("/api/sitios/mis-sitios", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_mis_sitios_sin_auth(client):
+    response = client.get("/api/sitios/mis-sitios")
+    assert response.status_code == 401
+
+
+def test_upload_miniatura(client, user_data):
+    from io import BytesIO
+    
+    headers = get_auth_header(client, user_data)
+    create_response = client.post(
+        "/api/sitios",
+        json={"nombre": "Con Miniatura", "slug": "con-miniatura"},
+        headers=headers
+    )
+    sitio_id = create_response.json()["id"]
+
+    file_content = BytesIO(b"fake image content")
+    file_content.name = "test.png"
+    
+    response = client.post(
+        f"/api/sitios/{sitio_id}/miniatura",
+        files={"file": ("test.png", b"fake image content", "image/png")},
+        headers=headers
+    )
+
+    assert response.status_code == 200
+    assert "url" in response.json()
+
+
+def test_upload_miniatura_no_propietario(client, user_data):
+    from app.models.usuario import User
+    
+    headers = get_auth_header(client, user_data)
+    
+    client.post("/api/auth/registro", json={
+        "correo": "otro@test.com",
+        "contrasena": "123456",
+        "nombre": "Otro",
+        "apellido": "Usuario"
+    })
+    login_response = client.post(
+        "/api/auth/inicio",
+        data={
+            "username": "otro@test.com",
+            "password": "123456"
+        }
+    )
+    otro_token = login_response.json()["access_token"]
+    otro_headers = {"Authorization": f"Bearer {otro_token}"}
+    
+    create_response = client.post(
+        "/api/sitios",
+        json={"nombre": "Sitio Owner", "slug": "sitio-owner"},
+        headers=headers
+    )
+    sitio_id = create_response.json()["id"]
+
+    response = client.post(
+        f"/api/sitios/{sitio_id}/miniatura",
+        files={"file": ("test.png", b"fake", "image/png")},
+        headers=otro_headers
+    )
+
+    assert response.status_code == 403

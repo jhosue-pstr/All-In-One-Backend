@@ -9,11 +9,12 @@ class SitioBase(BaseModel):
     id_plantilla: Optional[int] = None
     configuracion: Optional[dict[str, Any]] = None
     switches: Optional[dict[str, bool]] = None
+    miniatura: Optional[str] = None
     activo: Optional[bool] = True
 
 
 class SitioCreate(SitioBase):
-    pass
+    id_usuario: Optional[int] = None
 
 
 class SitioUpdate(BaseModel):
@@ -23,6 +24,7 @@ class SitioUpdate(BaseModel):
     id_plantilla: Optional[int] = None
     configuracion: Optional[dict[str, Any]] = None
     switches: Optional[dict[str, bool]] = None
+    miniatura: Optional[str] = None
     activo: Optional[bool] = None
 
 

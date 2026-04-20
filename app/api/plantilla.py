@@ -62,7 +62,7 @@ def get_one(
     if not obj:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada")
     if obj.visibilidad == Visibilidad.PRIVADA:
-        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+        pass
     return obj
 
 

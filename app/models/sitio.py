@@ -1,6 +1,6 @@
 from typing import Optional, Any
 from datetime import datetime
-from sqlalchemy import String, ForeignKey, JSON, Boolean, Table, Column, DateTime
+from sqlalchemy import String, ForeignKey, JSON, Boolean, Table, Column, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
@@ -40,6 +40,8 @@ class Sitio(Base):
     configuracion: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     switches: Mapped[Optional[dict[str, bool]]] = mapped_column(JSON, nullable=True)
+
+    miniatura: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 

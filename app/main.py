@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pathlib import Path
 from app.db.database import get_db, Base
+import app.models
 from app.api import (
     auth_router,
     sitio_router,

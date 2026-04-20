@@ -3,6 +3,7 @@ from app.service.sitio import (
     create_sitio,
     get_sitio,
     get_sitios,
+    get_sitios_del_usuario,
     update_sitio,
     delete_sitio,
 )
@@ -163,3 +164,40 @@ def test_get_modulos_del_sitio(db):
 
     assert result is not None
     assert len(result) == 2
+
+
+def test_get_sitios_del_usuario(db):
+    from app.models.usuario import User
+    from app.models.sitio import Sitio
+
+    user1 = User(correo="user1@test.com", contrasena="hash", nombre="User1", apellido="Test")
+    user2 = User(correo="user2@test.com", contrasena="hash", nombre="User2", apellido="Test")
+    db.add_all([user1, user2])
+    db.commit()
+    db.refresh(user1)
+    db.refresh(user2)
+
+    db.add_all([
+        Sitio(nombre="Sitio User1 A", slug="user1-a", id_usuario=user1.id),
+        Sitio(nombre="Sitio User1 B", slug="user1-b", id_usuario=user1.id),
+        Sitio(nombre="Sitio User2", slug="user2-a", id_usuario=user2.id),
+    ])
+    db.commit()
+
+    result = get_sitios_del_usuario(db, user1.id)
+
+    assert len(result) == 2
+    assert all(s.id_usuario == user1.id for s in result)
+
+
+def test_get_sitios_del_usuario_vacio(db):
+    from app.models.usuario import User
+
+    user = User(correo="empty@test.com", contrasena="hash", nombre="Empty", apellido="Test")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    result = get_sitios_del_usuario(db, user.id)
+
+    assert result == []
