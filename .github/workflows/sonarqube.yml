@@ -32,7 +32,7 @@ jobs:
           ls -la
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@4b30b3b86f804c1d643cfb874b64c041ae6d313c
+        uses: SonarSource/sonarqube-scan-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
