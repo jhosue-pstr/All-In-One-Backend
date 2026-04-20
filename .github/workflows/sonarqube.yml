@@ -26,6 +26,10 @@ jobs:
         run: |
           pytest --cov=app --cov-report=xml
 
+      - name: Debug files (IMPORTANTE)
+        run: |
+          ls -la
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v2
         env:
@@ -36,5 +40,6 @@ jobs:
           args: >
             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
             -Dsonar.organization=jhosue-pstr
-            -Dsonar.sources=app
+            -Dsonar.sources=.
+            -Dsonar.exclusions=test/**,media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
