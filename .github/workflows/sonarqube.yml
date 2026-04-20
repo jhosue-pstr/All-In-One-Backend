@@ -41,5 +41,6 @@ jobs:
             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
             -Dsonar.organization=jhosue-pstr
             -Dsonar.sources=.
+            -Dsonar.projectBaseDir=/github/workspace
             -Dsonar.exclusions=test/**,media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
