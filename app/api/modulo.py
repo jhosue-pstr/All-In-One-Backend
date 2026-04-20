@@ -25,18 +25,18 @@ router = APIRouter(prefix="/modulos", tags=["Modulos"])
 def crear_modulo(
     data: ModuloCreate,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     return create_modulo(db, data)
 
 
 @router.get("/", response_model=list[ModuloResponse])
-def listar_modulos(db: Session = Depends(get_db)):
+def listar_modulos(db: Annotated[Session, Depends(get_db)]):
     return get_modulos(db)
 
 
 @router.get("/{modulo_id}", response_model=ModuloResponse)
-def obtener_modulo(modulo_id: int, db: Session = Depends(get_db)):
+def obtener_modulo(modulo_id: int, db: Annotated[Session, Depends(get_db)]):
     modulo = get_modulo(db, modulo_id)
     if not modulo:
         raise HTTPException(status_code=404, detail="Modulo no encontrado")
@@ -48,7 +48,7 @@ def actualizar_modulo(
     modulo_id: int,
     data: ModuloUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     modulo = get_modulo(db, modulo_id)
     if not modulo:
@@ -61,7 +61,7 @@ def actualizar_modulo(
 def eliminar_modulo(
     modulo_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     modulo = get_modulo(db, modulo_id)
     if not modulo:

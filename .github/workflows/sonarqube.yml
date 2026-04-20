@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8fd1845f1429eccb723be47e46ef1b59e4f049f5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@0adef1f8f7c5e1c3a2a7f3f1e2c8a5e6b3d7e8f9
         with:
           python-version: 3.12
 
@@ -32,7 +32,7 @@ jobs:
           ls -la
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+        uses: SonarSource/sonarqube-scan-action@0883fa92810704464c188587b00b8b5b8da3d247
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

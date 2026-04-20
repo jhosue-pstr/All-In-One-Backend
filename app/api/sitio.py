@@ -27,26 +27,26 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 def crear_sitio(
     data: SitioCreate,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     return create_sitio(db, data, current_user.id)
 
 
 @router.get("/", response_model=list[SitioResponse])
-def listar_sitios(db: Session = Depends(get_db)):
+def listar_sitios(db: Annotated[Session, Depends(get_db)]):
     return get_sitios(db)
 
 
 @router.get("/mis-sitios", response_model=list[SitioResponse])
 def mis_sitios(
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     return get_sitios_del_usuario(db, current_user.id)
 
 
 @router.get("/{sitio_id}", response_model=SitioResponse)
-def obtener_sitio(sitio_id: int, db: Session = Depends(get_db)):
+def obtener_sitio(sitio_id: int, db: Annotated[Session, Depends(get_db)]):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
@@ -58,7 +58,7 @@ def actualizar_sitio(
     sitio_id: int,
     data: SitioUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
@@ -71,7 +71,7 @@ def actualizar_sitio(
 def eliminar_sitio(
     sitio_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
@@ -92,7 +92,7 @@ def upload_miniatura(
     sitio_id: int,
     request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
     file: UploadFile = File(...)
 ):
     if not es_propietario(db, sitio_id, current_user.id):
