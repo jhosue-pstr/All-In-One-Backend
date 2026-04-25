@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -27,8 +28,19 @@ def injectar_recursos(html: str, css: str = "", js: str = "") -> str:
     return html
 
 
-@router.get("/{slug}", response_class=HTMLResponse)
-def render_sitio(slug: str, request: Request, db: Session = Depends(get_db)):
+@router.get(
+    "/{slug}",
+    response_class=HTMLResponse,
+    responses={
+        404: {"description": "Sitio no encontrado"},
+        403: {"description": "Sitio temporalmente desactivado"}
+    }
+)
+def render_sitio(
+    slug: str,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)]
+):
     sitio = get_sitio_por_slug(db, slug)
     
     if not sitio:
