@@ -1,4 +1,5 @@
 import pytest
+import pytest
 from app.service.sitio_modulo import (
     agregar_modulo_a_sitio,
     quitar_modulo_de_sitio,
@@ -34,6 +35,16 @@ def test_agregar_modulo_inexistente(db):
 
     result = agregar_modulo_a_sitio(db, sitio.id, 9999)
 
+    assert result is None
+
+
+def test_agregar_modulo_sitio_inexistente(db):
+    result = agregar_modulo_a_sitio(db, 9999, 1)
+    assert result is None
+
+
+def test_quitar_modulo_de_sitio_inexistente(db):
+    result = quitar_modulo_de_sitio(db, 9999, 1)
     assert result is None
 
 

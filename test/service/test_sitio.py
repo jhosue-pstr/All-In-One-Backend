@@ -222,3 +222,26 @@ def test_get_sitio_por_slug(db):
 def test_get_sitio_por_slug_no_existe(db):
     result = get_sitio_por_slug(db, "no-existe-12345")
     assert result is None
+
+
+def test_create_sitio_with_plantilla_config(db):
+    from app.models.plantilla import Plantilla
+
+    plantilla = Plantilla(
+        nombre="Plantilla Blog",
+        slug="plantilla-blog-2",
+        configuracion={"html": "<div>Blog</div>"}
+    )
+    db.add(plantilla)
+    db.commit()
+    db.refresh(plantilla)
+
+    data = SitioCreate(
+        nombre="Mi Blog",
+        slug="mi-blog-2",
+        id_plantilla=plantilla.id
+    )
+
+    sitio = create_sitio(db, data)
+
+    assert sitio.configuracion == {"html": "<div>Blog</div>"}

@@ -1,3 +1,4 @@
+import pytest
 from app.schemas.modulo import ModuloCreate, ModuloUpdate
 from app.service.modulo import (
     create_modulo,
@@ -78,3 +79,14 @@ def test_delete_modulo(db):
     result = db.query(Modulo).filter(Modulo.id == obj.id).first()
 
     assert result is None
+
+
+def test_create_modulo_duplicate_error(db):
+    from app.models.modulo import Modulo
+    from sqlalchemy.exc import IntegrityError
+
+    db.add(Modulo(nombre="Test", slug="dup-test", tipo="x"))
+    db.commit()
+
+    with pytest.raises(IntegrityError):
+        create_modulo(db, ModuloCreate(nombre="Test2", slug="dup-test", tipo="x"))
