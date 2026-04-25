@@ -27,8 +27,12 @@ def get_plantillas_publicas(db: Session):
 
 
 def get_plantillas_del_usuario(db: Session, user_id: int):
-    return db.query(Plantilla).filter(Plantilla.id_usuario == user_id).all()
-
+    return (
+        db.query(Plantilla)
+        .filter(Plantilla.id_usuario == user_id)
+        .order_by(Plantilla.id.desc())
+        .all()
+    )
 
 def update_plantilla(db: Session, plantilla_id: int, data: PlantillaUpdate):
     obj = get_plantilla(db, plantilla_id)

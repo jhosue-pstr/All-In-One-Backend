@@ -3,12 +3,19 @@ from app.models.modulo import Modulo
 from app.schemas.modulo import ModuloCreate, ModuloUpdate
 
 
-def create_modulo(db: Session, data: ModuloCreate):
-    obj = Modulo(**data.model_dump())
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-    return obj
+from sqlalchemy.exc import SQLAlchemyError
+
+def create_modulo(db: Session, data: ModuloCreate) -> Modulo:
+    modulo = Modulo(**data.model_dump())
+
+    try:
+        db.add(modulo)
+        db.commit()
+        db.refresh(modulo)
+        return modulo
+    except SQLAlchemyError:
+        db.rollback()
+        raise
 
 
 def get_modulo(db: Session, modulo_id: int):

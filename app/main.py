@@ -14,6 +14,7 @@ from app.api import (
     sitio_modulo_router,
     modulo_router,
     plantilla_router,
+    site_auth_router,
 )
 from app.api.publico import router as público_router
 
@@ -39,6 +40,7 @@ app.include_router(modulo_router, prefix="/api")
 app.include_router(sitio_router, prefix="/api")
 app.include_router(sitio_modulo_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
+app.include_router(site_auth_router, prefix="/api")
 app.include_router(plantilla_router, prefix="/api")
 app.include_router(público_router)
 

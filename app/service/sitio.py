@@ -23,9 +23,12 @@ def create_sitio(db: Session, data: SitioCreate, usuario_id: int = None):
     return obj
 
 
-def get_sitio(db: Session, sitio_id: int):
-    return db.query(Sitio).filter(Sitio.id == sitio_id).first()
-
+def get_sitio(db: Session, sitio_id: int) -> Sitio | None:
+    return (
+        db.query(Sitio)
+        .filter(Sitio.id == sitio_id)
+        .first()
+    )
 
 def get_sitio_por_slug(db: Session, slug: str):
     return db.query(Sitio).filter(Sitio.slug == slug).first()
