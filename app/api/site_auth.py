@@ -1,5 +1,7 @@
 from typing import Annotated
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
@@ -17,9 +19,11 @@ from app.core.config import settings
 
 router = APIRouter(prefix="/site-auth", tags=["site-auth"])
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/site-auth/login", auto_error=False)
+
 
 def get_current_usuario_sitio(
-    token: str,
+    token: Annotated[str | None, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)]
 ):
     credentials_exception = HTTPException(
@@ -27,6 +31,9 @@ def get_current_usuario_sitio(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if token is None:
+        raise credentials_exception
 
     usuario = services.verify_token_usuario_sitio(db, token)
     if usuario is None:

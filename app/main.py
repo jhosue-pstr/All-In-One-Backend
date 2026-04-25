@@ -23,6 +23,8 @@ from app.api.publico import router as público_router
 async def lifespan(app: FastAPI):
     from app.db.database import engine
     Base.metadata.create_all(bind=engine)
+    from app.db.seed_modulos import seed_modulos
+    seed_modulos()
     yield
 
 
