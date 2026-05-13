@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout()
+    }
+
     environment {
         SONAR_HOST_URL = 'https://sonarcloud.io'
         SONAR_TOKEN    = credentials('sonar-token')
@@ -39,15 +43,15 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 sh '''docker run --rm \
-                    -v "$PWD:/usr/src" \
+                    -v "${WORKSPACE}:/usr/src" \
                     -e SONAR_TOKEN="${SONAR_TOKEN}" \
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
                     -Dsonar.organization=${ORG} \
-                    -Dsonar.sources=app \
-                    -Dsonar.tests=test \
+                    -Dsonar.sources=/usr/src/app \
+                    -Dsonar.tests=/usr/src/test \
                     -Dsonar.exclusions=media/**,*.db \
-                    -Dsonar.python.coverage.reportPaths=coverage.xml \
+                    -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
                     -Dsonar.python.version=3.12 \
                     -Dsonar.host.url=${SONAR_HOST_URL}'''
             }
