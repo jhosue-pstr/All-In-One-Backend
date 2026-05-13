@@ -92,3 +92,28 @@ jobs:
             -Dsonar.exclusions=media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.python.version=3.12
+
+      - name: Setup Java for CNES Report
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Download CNES Report JAR
+        run: |
+          curl -sL -o sonar-cnes-report.jar \
+            "https://github.com/cnescatlab/sonar-cnes-report/releases/download/5.0.4/sonar-cnes-report-5.0.4.jar"
+
+      - name: Generate CNES Report
+        run: |
+          java -jar sonar-cnes-report.jar \
+            -t ${{ secrets.SONAR_TOKEN }} \
+            -s https://sonarcloud.io \
+            -p jhosue-pstr_All-In-One-Backend \
+            -o ./cnes-report
+
+      - name: Upload CNES Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cnes-report-backend
+          path: ./cnes-report/
