@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && useradd -m appuser
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt psycopg2-binary
+RUN pip install --only-binary :all: --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
