@@ -48,9 +48,9 @@ pipeline {
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
                     -Dsonar.organization=${ORG} \
-                    -Dsonar.sources=/usr/src/app \
+                    -Dsonar.sources=/usr/src/All-In-One-Backend/app \
                     -Dsonar.exclusions=media/**,*.db \
-                    -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+                    -Dsonar.python.coverage.reportPaths=/usr/src/All-In-One-Backend/coverage.xml \
                     -Dsonar.python.version=3.12 \
                     -Dsonar.host.url=${SONAR_HOST_URL}'''
             }
