@@ -104,6 +104,13 @@ jobs:
           curl -sL -o sonar-cnes-report.jar \
             "https://github.com/cnescatlab/sonar-cnes-report/releases/download/5.0.4/sonar-cnes-report-5.0.4.jar"
 
+      - name: Patch JAR for SonarCloud API v8
+        run: |
+          unzip -p sonar-cnes-report.jar metrics.properties | \
+            sed 's/,files,/,fileUuids,/g' > metrics.properties
+          zip -u sonar-cnes-report.jar metrics.properties
+          rm metrics.properties
+
       - name: Generate CNES Report
         run: |
           java -jar sonar-cnes-report.jar \
