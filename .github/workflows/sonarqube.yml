@@ -87,7 +87,7 @@ jobs:
           args: >
             -Dsonar.projectKey=jhosue-pstr_All-In-One-Backend
             -Dsonar.organization=jhosue-pstr
-            -Dsonar.sources=app
+            -Dsonar.sources=.
             -Dsonar.tests=test
             -Dsonar.exclusions=media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
