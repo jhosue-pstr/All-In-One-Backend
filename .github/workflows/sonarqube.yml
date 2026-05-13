@@ -60,7 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 🔥 quita warning de shallow clone
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -89,7 +89,7 @@ jobs:
             -Dsonar.organization=jhosue-pstr
             -Dsonar.sources=.
             -Dsonar.tests=test
-            -Dsonar.exclusions=media/**,*.db
+            -Dsonar.exclusions=test/**,media/**,*.db
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.python.version=3.12
 
