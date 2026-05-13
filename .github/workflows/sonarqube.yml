@@ -110,6 +110,10 @@ jobs:
             sed 's/,files,/,fileUuids,/g' > metrics.properties
           zip -u sonar-cnes-report.jar metrics.properties
           rm metrics.properties
+          unzip -p sonar-cnes-report.jar requests.properties | \
+            sed 's/project=%s/projectKey=%s/g' > requests.properties
+          zip -u sonar-cnes-report.jar requests.properties
+          rm requests.properties
 
       - name: Generate CNES Report
         run: |
