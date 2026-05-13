@@ -1441,6 +1441,12 @@ uvicorn[standard]==0.44.0 \
     #   -r requirements.txt
     #   fastapi-cli
     #   fastapi-cloud-cli
+    #   uvloop
+uvloop==0.22.1 \
+    --hash=sha256:7b5b1ac819a3f946d3b2ee07f09149578ae76066d70b44df3fa990add49a82e4 \
+    --hash=sha256:512fec6815e2dd45161054592441ef76c830eddaad55c8aa30952e6fe1ed07c0
+    # via
+    #   uvicorn
 watchfiles==1.1.1 \
     --hash=sha256:00485f441d183717038ed2e887a7c868154f216877653121068107b227a2f64c \
     --hash=sha256:03fa0f5237118a0c5e496185cafa92878568b652a2e9a9382a5151b1a0380a43 \
