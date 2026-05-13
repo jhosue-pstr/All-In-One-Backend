@@ -42,16 +42,6 @@ pipeline {
 
         stage('SonarCloud Analysis') {
             steps {
-                sh 'echo "=== WORKSPACE: ${WORKSPACE} ==="'
-                sh 'ls -la "${WORKSPACE}/"'
-                sh 'echo "=== Looking for app/ ==="'
-                sh 'ls -la "${WORKSPACE}/app/" 2>&1 || true'
-                sh 'find "${WORKSPACE}" -maxdepth 4 -type d -name "app" 2>&1 || true'
-                sh '''docker run --rm \
-                    -v "${WORKSPACE}:/usr/src" \
-                    --entrypoint sh \
-                    sonarsource/sonar-scanner-cli:latest \
-                    -c "ls -la /usr/src && echo '=== app dir? ===' && ls -la /usr/src/app/ 2>&1 || echo 'NOT FOUND at /usr/src/app'"'''
                 sh '''docker run --rm \
                     -v "${WORKSPACE}:/usr/src" \
                     -e SONAR_TOKEN="${SONAR_TOKEN}" \
@@ -79,6 +69,19 @@ pipeline {
             steps {
                 sh 'docker build -t all-in-one-backend:latest .'
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db'
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completado exitosamente'
+        }
+        failure {
+            echo 'Pipeline falló'
         }
     }
 
