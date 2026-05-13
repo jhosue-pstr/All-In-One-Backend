@@ -12,11 +12,11 @@ SONARCLOUD_URL = "https://sonarcloud.io"
 PAGE_SIZE = 500
 
 METRIC_KEYS = [
-    "alert_status", "quality_gate_details",
+    "alert_status",
     "bugs", "reliability_rating", "reliability_remediation_effort",
     "vulnerabilities", "security_rating", "security_remediation_effort",
-    "security_hotspots", "security_review_rating", "security_review_remediation_effort",
-    "code_smells", "sqale_rating", "sqale_index", "debt_ratio",
+    "security_hotspots", "security_review_rating",
+    "code_smells", "sqale_rating", "sqale_index",
     "coverage", "line_coverage", "branch_coverage",
     "duplicated_lines_density", "duplicated_blocks",
     "ncloc", "files", "directories",
@@ -36,8 +36,15 @@ def api_get(token, endpoint, params=None):
         "Accept": "application/json",
     })
     ctx = ssl.create_default_context()
-    with urlopen(req, context=ctx, timeout=30) as resp:
-        return json.loads(resp.read().decode())
+    try:
+        with urlopen(req, context=ctx, timeout=30) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as e:
+        sys.stderr.write(f"  API error: {e}\n")
+        if hasattr(e, 'read'):
+            body = e.read().decode()
+            sys.stderr.write(f"  Response body: {body}\n")
+        raise
 
 
 def fetch_all_issues(token, project_key):
