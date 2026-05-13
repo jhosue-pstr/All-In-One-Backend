@@ -69,8 +69,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --only-binary :all: -r requirements.txt
-          pip install --only-binary :all: pytest==9.0.3 pytest-cov==7.1.0
+          pip install --only-binary :all: --require-hashes -r requirements.lock
 
       - name: Run tests with coverage
         run: |

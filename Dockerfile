@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m appuser
 
-COPY requirements.txt .
-RUN pip install --only-binary :all: --no-cache-dir -r requirements.txt
+COPY requirements.lock .
+RUN pip install --only-binary :all: --require-hashes --no-cache-dir -r requirements.lock
 
 COPY app ./app
 
