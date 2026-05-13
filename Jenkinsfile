@@ -49,7 +49,6 @@ pipeline {
                     -Dsonar.projectKey=${PROJECT_KEY} \
                     -Dsonar.organization=${ORG} \
                     -Dsonar.sources=/usr/src/app \
-                    -Dsonar.tests=/usr/src/test \
                     -Dsonar.exclusions=media/**,*.db \
                     -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
                     -Dsonar.python.version=3.12 \
@@ -73,9 +72,4 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            deleteDir()
-        }
-    }
 }
