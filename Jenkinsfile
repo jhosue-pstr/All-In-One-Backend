@@ -75,7 +75,7 @@ pipeline {
     post {
         always {
             sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db'
-            cleanWs()
+            deleteDir()
         }
         success {
             echo 'Pipeline completado exitosamente'
