@@ -69,8 +69,6 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'cnes-report/**', fingerprint: true
-            junit 'test-reports/**/*.xml' || true
             cleanWs()
         }
     }
