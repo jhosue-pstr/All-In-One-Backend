@@ -38,16 +38,18 @@ pipeline {
 
         stage('SonarCloud Analysis') {
             steps {
-                withSonarQubeEnv('SonarCloud') {
-                    sh '''sonar-scanner \
-                        -Dsonar.projectKey=${PROJECT_KEY} \
-                        -Dsonar.organization=${ORG} \
-                        -Dsonar.sources=app \
-                        -Dsonar.tests=test \
-                        -Dsonar.exclusions=media/**,*.db \
-                        -Dsonar.python.coverage.reportPaths=coverage.xml \
-                        -Dsonar.python.version=3.12'''
-                }
+                sh '''docker run --rm \
+                    -v "$PWD:/usr/src" \
+                    -e SONAR_TOKEN="${SONAR_TOKEN}" \
+                    sonarsource/sonar-scanner-cli:latest \
+                    -Dsonar.projectKey=${PROJECT_KEY} \
+                    -Dsonar.organization=${ORG} \
+                    -Dsonar.sources=app \
+                    -Dsonar.tests=test \
+                    -Dsonar.exclusions=media/**,*.db \
+                    -Dsonar.python.coverage.reportPaths=coverage.xml \
+                    -Dsonar.python.version=3.12 \
+                    -Dsonar.host.url=${SONAR_HOST_URL}'''
             }
         }
 
@@ -69,7 +71,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            deleteDir()
         }
     }
 }
