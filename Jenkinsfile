@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://sonarqube:9000'
-        SONAR_TOKEN    = credentials('Sonar-token')
+        SONAR_TOKEN    = credentials('Sonar-qube')
         PROJECT_KEY    = 'All-In-One-Backend'
     }
 
