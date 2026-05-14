@@ -47,6 +47,7 @@ pipeline {
                     -e SONAR_TOKEN="${SONAR_TOKEN}" \
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
+                    -Dsonar.projectBaseDir=${WORKSPACE} \
                     -Dsonar.sources=${WORKSPACE} \
                     -Dsonar.exclusions=media/**,*.db \
                     -Dsonar.python.coverage.reportPaths=${WORKSPACE}/coverage.xml \
