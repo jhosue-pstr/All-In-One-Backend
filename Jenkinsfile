@@ -35,7 +35,6 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '. venv/bin/activate && pytest --cov=app --cov-report=xml --cov-report=term'
-                sh "sed -i 's|$WORKSPACE|.|g' coverage.xml"
             }
         }
 
