@@ -42,14 +42,14 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 sh '''docker run --rm \
-                    -v "${WORKSPACE}:/usr/src" \
+                    --volumes-from jenkins \
                     --network app-network \
                     -e SONAR_TOKEN="${SONAR_TOKEN}" \
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
-                    -Dsonar.sources=/usr/src \
+                    -Dsonar.sources=${WORKSPACE} \
                     -Dsonar.exclusions=media/**,*.db \
-                    -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
+                    -Dsonar.python.coverage.reportPaths=${WORKSPACE}/coverage.xml \
                     -Dsonar.python.version=3.12 \
                     -Dsonar.host.url=${SONAR_HOST_URL}'''
             }
