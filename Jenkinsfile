@@ -49,7 +49,8 @@ pipeline {
                     -Dsonar.projectKey=${PROJECT_KEY} \
                     -Dsonar.projectBaseDir=${WORKSPACE} \
                     -Dsonar.sources=${WORKSPACE} \
-                    -Dsonar.exclusions=media/**,*.db \
+                    -Dsonar.tests=${WORKSPACE}/test \
+                    -Dsonar.exclusions=test/**,media/**,*.db \
                     -Dsonar.python.coverage.reportPaths=${WORKSPACE}/coverage.xml \
                     -Dsonar.python.version=3.12 \
                     -Dsonar.host.url=${SONAR_HOST_URL}'''
