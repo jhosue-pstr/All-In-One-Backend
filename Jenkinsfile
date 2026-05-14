@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('SonarCloud Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 sh '''docker run --rm \
                     -v "${WORKSPACE}:/usr/src" \
