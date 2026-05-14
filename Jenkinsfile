@@ -6,10 +6,9 @@ pipeline {
     }
 
     environment {
-        SONAR_HOST_URL = 'https://sonarcloud.io'
+        SONAR_HOST_URL = 'http://sonarqube:9000'
         SONAR_TOKEN    = credentials('sonar-token')
-        PROJECT_KEY    = 'jhosue-pstr_All-In-One-Backend'
-        ORG            = 'jhosue-pstr'
+        PROJECT_KEY    = 'All-In-One-Backend'
     }
 
     stages {
@@ -44,10 +43,10 @@ pipeline {
             steps {
                 sh '''docker run --rm \
                     -v "${WORKSPACE}:/usr/src" \
+                    --network app-network \
                     -e SONAR_TOKEN="${SONAR_TOKEN}" \
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
-                    -Dsonar.organization=${ORG} \
                     -Dsonar.sources=/usr/src \
                     -Dsonar.exclusions=media/**,*.db \
                     -Dsonar.python.coverage.reportPaths=/usr/src/coverage.xml \
