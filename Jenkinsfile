@@ -47,10 +47,10 @@ pipeline {
                     sonarsource/sonar-scanner-cli:latest \
                     -Dsonar.projectKey=${PROJECT_KEY} \
                     -Dsonar.projectBaseDir=${WORKSPACE} \
-                    -Dsonar.sources=${WORKSPACE} \
-                    -Dsonar.tests=${WORKSPACE}/test \
+                    -Dsonar.sources=app \
+                    -Dsonar.tests=test \
                     -Dsonar.exclusions=test/**,media/**,*.db \
-                    -Dsonar.python.coverage.reportPaths=${WORKSPACE}/coverage.xml \
+                    -Dsonar.python.coverage.reportPaths=coverage.xml \
                     -Dsonar.python.version=3.12 \
                     -Dsonar.host.url=${SONAR_HOST_URL}'''
             }
