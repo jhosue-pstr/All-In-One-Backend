@@ -28,9 +28,11 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def authenticate_usuario_sitio(db: Session, correo: str, contrasena: str, id_sitio: int):
+    # FILTRO SOFT DELETE
     usuario = db.query(UsuarioSitio).filter(
         UsuarioSitio.correo == correo,
-        UsuarioSitio.id_sitio == id_sitio
+        UsuarioSitio.id_sitio == id_sitio,
+        UsuarioSitio.activo == True
     ).first()
     if not usuario:
         return None
@@ -98,11 +100,20 @@ def verify_token_usuario_sitio(db: Session, token: str):
     except JWTError:
         return None
 
-    usuario = db.query(UsuarioSitio).filter(UsuarioSitio.id == usuario_id).first()
+    # FILTRO SOFT DELETE
+    usuario = db.query(UsuarioSitio).filter(
+        UsuarioSitio.id == usuario_id, 
+        UsuarioSitio.activo == True
+    ).first()
+    
     if usuario is None or usuario.token != token:
         return None
     return usuario
 
 
 def get_usuario_by_id(db: Session, usuario_id: int):
-    return db.query(UsuarioSitio).filter(UsuarioSitio.id == usuario_id).first()
+    # FILTRO SOFT DELETE
+    return db.query(UsuarioSitio).filter(
+        UsuarioSitio.id == usuario_id, 
+        UsuarioSitio.activo == True
+    ).first()

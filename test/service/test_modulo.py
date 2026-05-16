@@ -1,4 +1,8 @@
 import pytest
+from app.models.auditoria import Auditoria
+from app.models.modulo import Modulo
+
+from app.service.modulo import update_modulo
 from app.schemas.modulo import ModuloCreate, ModuloUpdate
 from app.service.modulo import (
     create_modulo,
@@ -90,3 +94,43 @@ def test_create_modulo_duplicate_error(db):
 
     with pytest.raises(IntegrityError):
         create_modulo(db, ModuloCreate(nombre="Test2", slug="dup-test", tipo="x"))
+
+def test_auditoria_registra_cambios_al_actualizar_modulo(db, user):
+    """
+    Verifica que al modificar un módulo del sistema quede registrado en la auditoría.
+    """
+    # 1. Crear módulo original
+    modulo_test = Modulo(
+        nombre="Modulo Viejo",
+        descripcion="Descripcion vieja",
+        version="1.0.0",
+        activo=True
+    )
+    db.add(modulo_test)
+    db.commit()
+    db.refresh(modulo_test)
+
+    # 2. Nuevos datos
+    nuevos_datos = ModuloUpdate(nombre="Modulo Actualizado")
+
+    # 3. Ejecutar servicio pasando el usuario
+    modulo_actualizado = update_modulo(
+        db=db,
+        modulo_id=modulo_test.id,
+        data=nuevos_datos,
+        user_id=user.id
+    )
+
+    assert modulo_actualizado.nombre == "Modulo Actualizado"
+
+    # 4. Validar log
+    log = db.query(Auditoria).filter(
+        Auditoria.entidad == "modulos",
+        Auditoria.entidad_id == modulo_test.id,
+        Auditoria.accion == "UPDATE"
+    ).first()
+
+    assert log is not None
+    assert log.usuario_id == user.id
+    assert log.valores_anteriores["nombre"] == "Modulo Viejo"
+    assert log.valores_nuevos["nombre"] == "Modulo Actualizado"

@@ -1,6 +1,9 @@
 import pytest
+from app.models.plantilla import Plantilla
 from app.models.plantilla import Visibilidad
-
+from app.models.auditoria import Auditoria
+from app.schemas.plantilla import PlantillaUpdate
+from app.service.plantilla import update_plantilla
 
 def get_auth_header(client, user_data):
     client.post("/api/auth/registro", json=user_data)
@@ -111,3 +114,43 @@ def test_no_puede_eliminar_plantilla_de_otro(client, user_data):
     )
 
     assert response.status_code == 403
+
+def test_auditoria_registra_cambios_al_actualizar_plantilla(db, user):
+    """
+    Verifica que al actualizar una plantilla se genere un registro en auditorias_log.
+    """
+    # 1. Crear plantilla original
+    plantilla_test = Plantilla(
+        nombre="Plantilla Original",
+        id_usuario=user.id,
+        visibilidad=Visibilidad.PUBLICA,
+        configuracion={"html": "<p>Plantilla vieja</p>"}
+    )
+    db.add(plantilla_test)
+    db.commit()
+    db.refresh(plantilla_test)
+
+    # 2. Datos de actualización
+    nuevos_datos = PlantillaUpdate(nombre="Plantilla Actualizada")
+
+    # 3. Ejecutar servicio
+    plantilla_actualizada = update_plantilla(
+        db=db,
+        plantilla_id=plantilla_test.id,
+        data=nuevos_datos,
+        user_id=user.id
+    )
+
+    assert plantilla_actualizada.nombre == "Plantilla Actualizada"
+
+    # 4. Validar auditoría
+    log = db.query(Auditoria).filter(
+        Auditoria.entidad == "plantillas",
+        Auditoria.entidad_id == plantilla_test.id,
+        Auditoria.accion == "UPDATE"
+    ).first()
+
+    assert log is not None
+    assert log.usuario_id == user.id
+    assert log.valores_anteriores["nombre"] == "Plantilla Original"
+    assert log.valores_nuevos["nombre"] == "Plantilla Actualizada"

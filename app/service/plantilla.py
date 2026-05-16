@@ -32,26 +32,30 @@ def create_plantilla(db: Session, data: PlantillaCreate, user_id: int = None):
 
 
 def get_plantilla(db: Session, plantilla_id: int):
-    return db.query(Plantilla).filter(Plantilla.id == plantilla_id).first()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Plantilla).filter(Plantilla.id == plantilla_id, Plantilla.activo == True).first()
 
 
 def get_plantillas(db: Session):
-    return db.query(Plantilla).all()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Plantilla).filter(Plantilla.activo == True).all()
 
 
 def get_plantillas_publicas(db: Session):
-    return db.query(Plantilla).filter(Plantilla.visibilidad == Visibilidad.PUBLICA).all()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Plantilla).filter(Plantilla.visibilidad == Visibilidad.PUBLICA, Plantilla.activo == True).all()
 
 
 def get_plantillas_del_usuario(db: Session, user_id: int):
+    # FILTRO SOFT DELETE: Solo traer si activo es True
     return (
         db.query(Plantilla)
-        .filter(Plantilla.id_usuario == user_id)
+        .filter(Plantilla.id_usuario == user_id, Plantilla.activo == True)
         .order_by(Plantilla.id.desc())
         .all()
     )
 
-# <-- Añadimos user_id opcional
+
 def update_plantilla(db: Session, plantilla_id: int, data: PlantillaUpdate, user_id: int = None):
     obj = get_plantilla(db, plantilla_id)
     if not obj:
@@ -82,7 +86,6 @@ def update_plantilla(db: Session, plantilla_id: int, data: PlantillaUpdate, user
     return obj
 
 
-# <-- Añadimos user_id opcional
 def delete_plantilla(db: Session, plantilla_id: int, user_id: int = None):
     obj = get_plantilla(db, plantilla_id)
     if not obj:
@@ -101,7 +104,8 @@ def delete_plantilla(db: Session, plantilla_id: int, user_id: int = None):
     db.add(auditoria)
     # --- FIN AUDITORÍA ---
 
-    db.delete(obj)
+    # TRUCO SOFT DELETE: Cambiamos el estado en vez de db.delete()
+    obj.activo = False
     db.commit()
 
 

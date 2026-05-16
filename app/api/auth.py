@@ -34,7 +34,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 def authenticate_user(db: Session, correo: str, contrasena: str):
-    user = db.query(User).filter(User.correo == correo).first()
+    # FILTRO SOFT DELETE: Solo los usuarios activos pueden hacer login
+    user = db.query(User).filter(User.correo == correo, User.activo == True).first()
     if not user:
         return None
     if not verify_password(contrasena, user.contrasena):
@@ -60,7 +61,8 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == user_id).first()
+    # FILTRO SOFT DELETE: Si el usuario fue "borrado", su token actual se invalida
+    user = db.query(User).filter(User.id == user_id, User.activo == True).first()
     if user is None:
         raise credentials_exception
     return user
@@ -118,7 +120,7 @@ def inicio(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales incorrectas",
+            detail="Credenciales incorrectas o cuenta inhabilitada", # <-- Mensaje más claro
             headers={"WWW-Authenticate": "Bearer"},
         )
 

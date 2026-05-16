@@ -36,11 +36,13 @@ def create_modulo(db: Session, data: ModuloCreate, user_id: int = None) -> Modul
 
 
 def get_modulo(db: Session, modulo_id: int):
-    return db.query(Modulo).filter(Modulo.id == modulo_id).first()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Modulo).filter(Modulo.id == modulo_id, Modulo.activo == True).first()
 
 
 def get_modulos(db: Session):
-    return db.query(Modulo).all()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Modulo).filter(Modulo.activo == True).all()
 
 
 def update_modulo(db: Session, modulo_id: int, data: ModuloUpdate, user_id: int = None):
@@ -91,5 +93,7 @@ def delete_modulo(db: Session, modulo_id: int, user_id: int = None):
     db.add(auditoria)
     # --- FIN AUDITORÍA ---
 
-    db.delete(obj)
+    # TRUCO SOFT DELETE: Cambiamos el estado en vez de db.delete()
+    obj.activo = False
     db.commit()
+    return obj

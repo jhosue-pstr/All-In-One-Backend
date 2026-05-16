@@ -1,4 +1,7 @@
-import pytest
+from app.models.auditoria import Auditoria
+from app.models.sitio import Sitio
+from app.models.modulo import Modulo
+from app.service.sitio_modulo import agregar_modulo_a_sitio
 import pytest
 from app.service.sitio_modulo import (
     agregar_modulo_a_sitio,
@@ -94,3 +97,30 @@ def test_get_modulos_del_sitio(db):
 def test_get_modulos_sitio_inexistente(db):
     result = get_modulos_del_sitio(db, 9999)
     assert result is None
+
+def test_auditoria_registra_cuando_se_agrega_modulo_a_sitio(db, user):
+    """
+    Verifica que al conectar un módulo a un sitio se genere una auditoría tipo INSERT.
+    """
+    # 1. Crear sitio y módulo
+    sitio = Sitio(nombre="Sitio de Test", slug="sitio-test-rel", id_usuario=user.id)
+    modulo = Modulo(nombre="Auth Module", descripcion="Módulo de seguridad", version="1.0.0")
+    db.add_all([sitio, modulo])
+    db.commit()
+    db.refresh(sitio)
+    db.refresh(modulo)
+
+    # 2. Ejecutar la relación
+    agregar_modulo_a_sitio(db=db, sitio_id=sitio.id, modulo_id=modulo.id, user_id=user.id)
+
+    # 3. Verificar la auditoría de la relación
+    log = db.query(Auditoria).filter(
+        Auditoria.entidad == "sitio_modulo",
+        Auditoria.entidad_id == sitio.id,
+        Auditoria.accion == "INSERT"
+    ).first()
+
+    assert log is not None
+    assert log.usuario_id == user.id
+    assert log.valores_nuevos["modulo_id"] == modulo.id
+    assert log.valores_nuevos["modulo_name"] == "Auth Module" or log.valores_nuevos.get("modulo_nombre") == "Auth Module"

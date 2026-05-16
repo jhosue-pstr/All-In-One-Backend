@@ -10,7 +10,7 @@ def create_sitio(db: Session, data: SitioCreate, usuario_id: int = None):
     
     if data_dict.get('id_plantilla'):
         from app.models.plantilla import Plantilla
-        plantilla = db.query(Plantilla).filter(Plantilla.id == data_dict['id_plantilla']).first()
+        plantilla = db.query(Plantilla).filter(Plantilla.id == data_dict['id_plantilla'], Plantilla.activo == True).first()
         if plantilla and plantilla.configuracion:
             data_dict['configuracion'] = plantilla.configuracion
         if plantilla and hasattr(plantilla, 'switches') and plantilla.switches:
@@ -43,23 +43,27 @@ def create_sitio(db: Session, data: SitioCreate, usuario_id: int = None):
 
 
 def get_sitio(db: Session, sitio_id: int) -> Sitio | None:
+    # FILTRO SOFT DELETE: Solo traer si activo es True
     return (
         db.query(Sitio)
-        .filter(Sitio.id == sitio_id)
+        .filter(Sitio.id == sitio_id, Sitio.activo == True)
         .first()
     )
 
 
 def get_sitio_por_slug(db: Session, slug: str):
-    return db.query(Sitio).filter(Sitio.slug == slug).first()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Sitio).filter(Sitio.slug == slug, Sitio.activo == True).first()
 
 
 def get_sitios(db: Session):
-    return db.query(Sitio).all()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Sitio).filter(Sitio.activo == True).all()
 
 
 def get_sitios_del_usuario(db: Session, usuario_id: int):
-    return db.query(Sitio).filter(Sitio.id_usuario == usuario_id).all()
+    # FILTRO SOFT DELETE: Solo traer si activo es True
+    return db.query(Sitio).filter(Sitio.id_usuario == usuario_id, Sitio.activo == True).all()
 
 
 def update_sitio(db: Session, sitio_id: int, data: SitioUpdate, usuario_id: int = None):
@@ -110,6 +114,7 @@ def delete_sitio(db: Session, sitio_id: int, usuario_id: int = None):
     db.add(auditoria)
     # --- FIN AUDITORÍA ---
 
-    db.delete(obj)
+    # TRUCO SOFT DELETE: Cambiamos el estado en vez de db.delete()
+    obj.activo = False
     db.commit()
     return obj

@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.models.base import BaseModel, TimestampMixin
 
@@ -11,3 +11,5 @@ class User(BaseModel, TimestampMixin):
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     apellido: Mapped[str] = mapped_column(String(100), nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="user")
+    
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
