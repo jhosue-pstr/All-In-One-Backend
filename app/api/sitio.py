@@ -25,6 +25,13 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 ERROR_SITIO_NO_ENCONTRADO = "Sitio no encontrado"
 ERROR_SIN_PERMISO = "No tienes permiso para editar este sitio"
 
+# Función helper subida arriba para que pueda ser usada en todas las rutas
+def es_propietario(db: Session, sitio_id: int, usuario_id: int):
+    sitio = get_sitio(db, sitio_id)
+    if not sitio:
+        return False
+    return sitio.id_usuario == usuario_id
+
 
 @router.post("/", response_model=SitioResponse, status_code=201)
 def crear_sitio(
@@ -32,6 +39,7 @@ def crear_sitio(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
+    # Aquí ya estaba bien, le pasas current_user.id
     return create_sitio(db, data, current_user.id)
 
 
@@ -63,7 +71,10 @@ def obtener_sitio(sitio_id: int, db: Annotated[Session, Depends(get_db)]):
 @router.put(
     "/{sitio_id}",
     response_model=SitioResponse,
-    responses={404: {"description": "Sitio no encontrado"}}
+    responses={
+        404: {"description": "Sitio no encontrado"},
+        403: {"description": "Sin permiso para editar"}
+    }
 )
 def actualizar_sitio(
     sitio_id: int,
@@ -74,14 +85,22 @@ def actualizar_sitio(
     sitio = get_sitio(db, sitio_id)
     if not sitio:
         raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
+        
+    # CORRECCIÓN 1: Validar que el usuario sea el dueño
+    if not es_propietario(db, sitio_id, current_user.id):
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
 
-    return update_sitio(db, sitio_id, data)
+    # CORRECCIÓN 2: Pasar current_user.id para la auditoría
+    return update_sitio(db, sitio_id, data, current_user.id)
 
 
 @router.delete(
     "/{sitio_id}",
     status_code=204,
-    responses={404: {"description": "Sitio no encontrado"}}
+    responses={
+        404: {"description": "Sitio no encontrado"},
+        403: {"description": "Sin permiso para editar"}
+    }
 )
 def eliminar_sitio(
     sitio_id: int,
@@ -91,15 +110,13 @@ def eliminar_sitio(
     sitio = get_sitio(db, sitio_id)
     if not sitio:
         raise HTTPException(status_code=404, detail=ERROR_SITIO_NO_ENCONTRADO)
+        
+    # CORRECCIÓN 1: Validar que el usuario sea el dueño
+    if not es_propietario(db, sitio_id, current_user.id):
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
 
-    delete_sitio(db, sitio_id)
-
-
-def es_propietario(db: Session, sitio_id: int, usuario_id: int):
-    sitio = get_sitio(db, sitio_id)
-    if not sitio:
-        return False
-    return sitio.id_usuario == usuario_id
+    # CORRECCIÓN 2: Pasar current_user.id para la auditoría
+    delete_sitio(db, sitio_id, current_user.id)
 
 
 @router.post(
@@ -137,6 +154,7 @@ def upload_miniatura(
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/media/sitios/{file_name}"
     
-    update_sitio(db, sitio_id, SitioUpdate(miniatura=url))
+    # CORRECCIÓN: Pasar current_user.id para que se audite quién subió la miniatura
+    update_sitio(db, sitio_id, SitioUpdate(miniatura=url), current_user.id)
     
     return {"url": url}

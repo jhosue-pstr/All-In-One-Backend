@@ -97,7 +97,9 @@ def update(
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
         raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
-    obj = update_plantilla(db, plantilla_id, data)
+        
+    # <-- CORRECCIÓN: Pasar current_user.id
+    obj = update_plantilla(db, plantilla_id, data, current_user.id)
     if not obj:
         raise HTTPException(status_code=404, detail=ERROR_PLANTILLA_NO_ENCONTRADA)
     return obj
@@ -115,7 +117,9 @@ def delete(
 ):
     if not es_propietario(db, plantilla_id, current_user.id):
         raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO_ELIMINAR)
-    delete_plantilla(db, plantilla_id)
+        
+    # <-- CORRECCIÓN: Pasar current_user.id
+    delete_plantilla(db, plantilla_id, current_user.id)
     return {"message": "Plantilla eliminada"}
 
 
@@ -154,6 +158,7 @@ def upload_miniatura(
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/media/plantillas/{file_name}"
     
-    update_plantilla(db, plantilla_id, PlantillaUpdate(miniatura=url))
+    # <-- CORRECCIÓN: Pasar current_user.id
+    update_plantilla(db, plantilla_id, PlantillaUpdate(miniatura=url), current_user.id)
     
     return {"url": url}

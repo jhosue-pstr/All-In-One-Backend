@@ -16,6 +16,14 @@ router = APIRouter(prefix="/sitios/{sitio_id}/modulos", tags=["Sitio-Modulos"])
 
 ERROR_SITIO_NO_ENCONTRADO = "Sitio no encontrado"
 ERROR_SITIO_O_MODULO_NO_ENCONTRADO = "Sitio o Modulo no encontrado"
+ERROR_SIN_PERMISO = "No tienes permiso para modificar los módulos de este sitio"
+
+# Helper de seguridad para verificar propiedad
+def es_propietario_sitio(db: Session, sitio_id: int, usuario_id: int):
+    sitio = db.query(Sitio).filter(Sitio.id == sitio_id).first()
+    if not sitio:
+        return False
+    return sitio.id_usuario == usuario_id
 
 
 @router.get(
@@ -35,7 +43,10 @@ def listar_modulos(
 
 @router.post(
     "/{modulo_id}",
-    responses={404: {"description": "Sitio o Modulo no encontrado"}}
+    responses={
+        404: {"description": "Sitio o Modulo no encontrado"},
+        403: {"description": "Sin permiso"}
+    }
 )
 def agregar_modulo(
     sitio_id: int,
@@ -43,7 +54,12 @@ def agregar_modulo(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)]
 ):
-    sitio = agregar_modulo_a_sitio(db, sitio_id, modulo_id)
+    # Validar propiedad antes de agregar
+    if not es_propietario_sitio(db, sitio_id, current_user.id):
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
+
+    # Pasar current_user.id para la auditoría
+    sitio = agregar_modulo_a_sitio(db, sitio_id, modulo_id, current_user.id)
     if not sitio:
         raise HTTPException(status_code=404, detail=ERROR_SITIO_O_MODULO_NO_ENCONTRADO)
     return {"message": "Modulo agregado"}
@@ -51,7 +67,10 @@ def agregar_modulo(
 
 @router.delete(
     "/{modulo_id}",
-    responses={404: {"description": "Sitio o Modulo no encontrado"}}
+    responses={
+        404: {"description": "Sitio o Modulo no encontrado"},
+        403: {"description": "Sin permiso"}
+    }
 )
 def quitar_modulo(
     sitio_id: int,
@@ -59,7 +78,12 @@ def quitar_modulo(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)]
 ):
-    sitio = quitar_modulo_de_sitio(db, sitio_id, modulo_id)
+    # Validar propiedad antes de quitar
+    if not es_propietario_sitio(db, sitio_id, current_user.id):
+        raise HTTPException(status_code=403, detail=ERROR_SIN_PERMISO)
+
+    # Pasar current_user.id para la auditoría
+    sitio = quitar_modulo_de_sitio(db, sitio_id, modulo_id, current_user.id)
     if not sitio:
         raise HTTPException(status_code=404, detail=ERROR_SITIO_O_MODULO_NO_ENCONTRADO)
     return {"message": "Modulo removido"}

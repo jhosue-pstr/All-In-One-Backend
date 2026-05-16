@@ -29,7 +29,8 @@ def crear_modulo(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
-    return create_modulo(db, data)
+    # <-- CORRECCIÓN: Pasar current_user.id
+    return create_modulo(db, data, current_user.id)
 
 
 @router.get("/", response_model=list[ModuloResponse])
@@ -64,7 +65,8 @@ def actualizar_modulo(
     if not modulo:
         raise HTTPException(status_code=404, detail=ERROR_MODULO_NO_ENCONTRADO)
 
-    return update_modulo(db, modulo_id, data)
+    # <-- CORRECCIÓN: Pasar current_user.id
+    return update_modulo(db, modulo_id, data, current_user.id)
 
 
 @router.delete(
@@ -81,4 +83,5 @@ def eliminar_modulo(
     if not modulo:
         raise HTTPException(status_code=404, detail=ERROR_MODULO_NO_ENCONTRADO)
 
-    delete_modulo(db, modulo_id)
+    # <-- CORRECCIÓN: Pasar current_user.id
+    delete_modulo(db, modulo_id, current_user.id)

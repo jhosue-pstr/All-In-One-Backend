@@ -2,12 +2,14 @@ from typing import Annotated
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.encoders import jsonable_encoder  # <-- Importado para la auditoría
 from sqlalchemy.orm import Session
 import bcrypt
 from jose import JWTError, jwt
 
 from app.db.database import get_db
 from app.models.usuario import User
+from app.models.auditoria import Auditoria  # <-- Importado el modelo de auditoría
 from app.schemas.usuario import UserCreate, UserResponse, TokenResponse, UserUpdate
 from app.core.config import settings
 
@@ -85,6 +87,23 @@ def registro(
         role="user"
     )
     db.add(new_user)
+    db.flush()  # <-- Flush para obtener el ID del usuario antes de cerrar transacción
+
+    # --- INICIO AUDITORÍA (INSERT) ---
+    valores_nuevos = jsonable_encoder(new_user)
+    valores_nuevos.pop("contrasena", None)  # Por seguridad, no logeamos contraseñas
+
+    auditoria = Auditoria(
+        entidad="usuarios",
+        entidad_id=new_user.id,
+        accion="INSERT",
+        usuario_id=new_user.id,  # El mismo usuario es el autor de su registro
+        valores_anteriores=None,
+        valores_nuevos=valores_nuevos
+    )
+    db.add(auditoria)
+    # --- FIN AUDITORÍA ---
+
     db.commit()
     db.refresh(new_user)
     return new_user
@@ -120,6 +139,11 @@ def update_user(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
+    # --- INICIO AUDITORÍA (CAPTURA ANTES) ---
+    valores_anteriores = jsonable_encoder(current_user)
+    valores_anteriores.pop("contrasena", None)  # Seguridad
+    # --- FIN CAPTURA ANTES ---
+
     if user_data.nombre is not None:
         current_user.nombre = user_data.nombre
     if user_data.apellido is not None:
@@ -127,6 +151,21 @@ def update_user(
     if user_data.contrasena is not None:
         current_user.contrasena = get_password_hash(user_data.contrasena)
     
+    # --- INICIO AUDITORÍA (UPDATE) ---
+    valores_nuevos = jsonable_encoder(current_user)
+    valores_nuevos.pop("contrasena", None)  # Seguridad
+
+    auditoria = Auditoria(
+        entidad="usuarios",
+        entidad_id=current_user.id,
+        accion="UPDATE",
+        usuario_id=current_user.id,
+        valores_anteriores=valores_anteriores,
+        valores_nuevos=valores_nuevos
+    )
+    db.add(auditoria)
+    # --- FIN AUDITORÍA ---
+
     db.commit()
     db.refresh(current_user)
     return current_user

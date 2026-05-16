@@ -1,5 +1,5 @@
 from typing import Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, ForeignKey, JSON, Boolean, Table, Column, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
@@ -45,8 +45,8 @@ class Sitio(Base):
 
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow, nullable=True)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 
     modulos: Mapped[list["Modulo"]] = relationship(
         "Modulo",

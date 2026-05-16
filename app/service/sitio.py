@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from fastapi.encoders import jsonable_encoder
 from app.models.sitio import Sitio
+from app.models.auditoria import Auditoria  # <- Importación del modelo de auditoría
 from app.schemas.sitio import SitioCreate, SitioUpdate
 
 
@@ -17,7 +19,24 @@ def create_sitio(db: Session, data: SitioCreate, usuario_id: int = None):
     obj = Sitio(**data_dict)
     if usuario_id:
         obj.id_usuario = usuario_id
+        
     db.add(obj)
+    # Hacemos flush para que PostgreSQL genere el obj.id sin cerrar la transacción
+    db.flush() 
+    
+    # --- INICIO AUDITORÍA (INSERT) ---
+    valores_nuevos = jsonable_encoder(obj)
+    auditoria = Auditoria(
+        entidad="sitios",
+        entidad_id=obj.id,
+        accion="INSERT",
+        usuario_id=usuario_id,
+        valores_anteriores=None,
+        valores_nuevos=valores_nuevos
+    )
+    db.add(auditoria)
+    # --- FIN AUDITORÍA ---
+
     db.commit()
     db.refresh(obj)
     return obj
@@ -29,6 +48,7 @@ def get_sitio(db: Session, sitio_id: int) -> Sitio | None:
         .filter(Sitio.id == sitio_id)
         .first()
     )
+
 
 def get_sitio_por_slug(db: Session, slug: str):
     return db.query(Sitio).filter(Sitio.slug == slug).first()
@@ -42,18 +62,54 @@ def get_sitios_del_usuario(db: Session, usuario_id: int):
     return db.query(Sitio).filter(Sitio.id_usuario == usuario_id).all()
 
 
-def update_sitio(db: Session, sitio_id: int, data: SitioUpdate):
+def update_sitio(db: Session, sitio_id: int, data: SitioUpdate, usuario_id: int = None):
     obj = get_sitio(db, sitio_id)
+    if not obj:
+        return None
+
+    # --- INICIO AUDITORÍA (CAPTURA ANTES) ---
+    valores_anteriores = jsonable_encoder(obj)
+    # --- FIN CAPTURA ANTES ---
 
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(obj, key, value)
+
+    # --- INICIO AUDITORÍA (UPDATE) ---
+    valores_nuevos = jsonable_encoder(obj)
+    auditoria = Auditoria(
+        entidad="sitios",
+        entidad_id=obj.id,
+        accion="UPDATE",
+        usuario_id=usuario_id,
+        valores_anteriores=valores_anteriores,
+        valores_nuevos=valores_nuevos
+    )
+    db.add(auditoria)
+    # --- FIN AUDITORÍA ---
 
     db.commit()
     db.refresh(obj)
     return obj
 
 
-def delete_sitio(db: Session, sitio_id: int):
+def delete_sitio(db: Session, sitio_id: int, usuario_id: int = None):
     obj = get_sitio(db, sitio_id)
+    if not obj:
+        return None
+
+    # --- INICIO AUDITORÍA (DELETE) ---
+    valores_anteriores = jsonable_encoder(obj)
+    auditoria = Auditoria(
+        entidad="sitios",
+        entidad_id=obj.id,
+        accion="DELETE",
+        usuario_id=usuario_id,
+        valores_anteriores=valores_anteriores,
+        valores_nuevos=None
+    )
+    db.add(auditoria)
+    # --- FIN AUDITORÍA ---
+
     db.delete(obj)
     db.commit()
+    return obj
