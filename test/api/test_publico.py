@@ -84,8 +84,9 @@ def test_render_sitio_inactivo(client: TestClient, db):
 
     response = client.get("/sitio-inactivo")
 
-    assert response.status_code == 403
-    assert "desactivado" in response.text.lower()
+    # Ahora esperamos un 404 porque el servicio filtra los inactivos
+    assert response.status_code == 404
+    assert "no encontrado" in response.text.lower()
 
 
 def test_render_sitio_vacio(client: TestClient, db):

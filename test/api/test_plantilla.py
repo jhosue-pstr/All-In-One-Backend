@@ -95,6 +95,9 @@ def test_eliminar_plantilla(db):
 
     delete_plantilla(db, obj.id)
 
+    # El test ahora busca el objeto físico en la BD
     result = db.query(Plantilla).filter(Plantilla.id == obj.id).first()
 
-    assert result is None
+    # Comprobamos el Soft Delete
+    assert result is not None, "El registro físico no debería borrarse"
+    assert result.activo is False, "El estado debió cambiar a False"

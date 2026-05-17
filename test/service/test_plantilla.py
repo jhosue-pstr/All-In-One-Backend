@@ -119,9 +119,9 @@ def test_auditoria_registra_cambios_al_actualizar_plantilla(db, user):
     """
     Verifica que al actualizar una plantilla se genere un registro en auditorias_log.
     """
-    # 1. Crear plantilla original
     plantilla_test = Plantilla(
         nombre="Plantilla Original",
+        slug="plantilla-original-test",
         id_usuario=user.id,
         visibilidad=Visibilidad.PUBLICA,
         configuracion={"html": "<p>Plantilla vieja</p>"}
@@ -130,10 +130,8 @@ def test_auditoria_registra_cambios_al_actualizar_plantilla(db, user):
     db.commit()
     db.refresh(plantilla_test)
 
-    # 2. Datos de actualización
     nuevos_datos = PlantillaUpdate(nombre="Plantilla Actualizada")
 
-    # 3. Ejecutar servicio
     plantilla_actualizada = update_plantilla(
         db=db,
         plantilla_id=plantilla_test.id,
@@ -143,7 +141,6 @@ def test_auditoria_registra_cambios_al_actualizar_plantilla(db, user):
 
     assert plantilla_actualizada.nombre == "Plantilla Actualizada"
 
-    # 4. Validar auditoría
     log = db.query(Auditoria).filter(
         Auditoria.entidad == "plantillas",
         Auditoria.entidad_id == plantilla_test.id,

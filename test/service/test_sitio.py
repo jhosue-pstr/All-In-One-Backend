@@ -101,7 +101,8 @@ def test_delete_sitio(db):
 
     result = db.query(Sitio).filter(Sitio.id == obj.id).first()
 
-    assert result is None
+    assert result is not None
+    assert result.activo is False
 
 
 def test_agregar_modulo_a_sitio(db):
@@ -218,11 +219,12 @@ def test_get_sitio_por_slug(db):
     assert result is not None
     assert result.nombre == "Mi Sitio Pro"
     assert result.slug == "mi-sitio-pro"
+
+
 def test_auditoria_registra_cambios_al_actualizar(db, user):
     """
     Verifica que al actualizar un sitio, se cree un registro en la tabla de auditoría.
     """
-    # 1. Crear un sitio de prueba temporal
     from app.models.sitio import Sitio
     sitio_test = Sitio(
         nombre="Sitio Original",
@@ -234,13 +236,11 @@ def test_auditoria_registra_cambios_al_actualizar(db, user):
     db.commit()
     db.refresh(sitio_test)
 
-    # 2. Preparamos los datos de actualización
     nuevos_datos = SitioUpdate(
         nombre="Sitio Editado",
         configuracion={"html": "<h1>HTML Nuevo</h1>"}
     )
 
-    # 3. Ejecutamos el servicio
     from app.service.sitio import update_sitio
     sitio_actualizado = update_sitio(
         db=db, 
@@ -251,18 +251,17 @@ def test_auditoria_registra_cambios_al_actualizar(db, user):
 
     assert sitio_actualizado.nombre == "Sitio Editado"
 
-    # 4. Consultamos la auditoría
     log_auditoria = db.query(Auditoria).filter(
         Auditoria.entidad == "sitios",
         Auditoria.entidad_id == sitio_test.id,
         Auditoria.accion == "UPDATE"
     ).order_by(Auditoria.id.desc()).first()
 
-    # 5. Validamos
     assert log_auditoria is not None, "El registro de auditoría no se creó"
     assert log_auditoria.usuario_id == user.id
     assert log_auditoria.valores_anteriores["nombre"] == "Sitio Original"
     assert log_auditoria.valores_nuevos["nombre"] == "Sitio Editado"
+
 
 def test_get_sitio_por_slug_no_existe(db):
     result = get_sitio_por_slug(db, "no-existe-12345")
@@ -290,5 +289,3 @@ def test_create_sitio_with_plantilla_config(db):
     sitio = create_sitio(db, data)
 
     assert sitio.configuracion == {"html": "<div>Blog</div>"}
-
-

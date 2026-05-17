@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy import String, ForeignKey, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.models.base import BaseModel, TimestampMixin
 
@@ -17,3 +17,6 @@ class UsuarioSitio(BaseModel, TimestampMixin):
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     apellido: Mapped[str] = mapped_column(String(100), nullable=False)
     token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # NUEVA COLUMNA PARA EL SOFT DELETE
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)

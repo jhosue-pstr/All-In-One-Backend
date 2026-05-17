@@ -102,18 +102,15 @@ def test_auditoria_registra_cuando_se_agrega_modulo_a_sitio(db, user):
     """
     Verifica que al conectar un módulo a un sitio se genere una auditoría tipo INSERT.
     """
-    # 1. Crear sitio y módulo
     sitio = Sitio(nombre="Sitio de Test", slug="sitio-test-rel", id_usuario=user.id)
-    modulo = Modulo(nombre="Auth Module", descripcion="Módulo de seguridad", version="1.0.0")
+    modulo = Modulo(nombre="Auth Module", slug="auth-mod-rel", tipo="auth", descripcion="Módulo de seguridad")
     db.add_all([sitio, modulo])
     db.commit()
     db.refresh(sitio)
     db.refresh(modulo)
 
-    # 2. Ejecutar la relación
     agregar_modulo_a_sitio(db=db, sitio_id=sitio.id, modulo_id=modulo.id, user_id=user.id)
 
-    # 3. Verificar la auditoría de la relación
     log = db.query(Auditoria).filter(
         Auditoria.entidad == "sitio_modulo",
         Auditoria.entidad_id == sitio.id,
@@ -123,4 +120,5 @@ def test_auditoria_registra_cuando_se_agrega_modulo_a_sitio(db, user):
     assert log is not None
     assert log.usuario_id == user.id
     assert log.valores_nuevos["modulo_id"] == modulo.id
-    assert log.valores_nuevos["modulo_name"] == "Auth Module" or log.valores_nuevos.get("modulo_nombre") == "Auth Module"
+    # Corregimos la llave al nombre correcto:
+    assert log.valores_nuevos["modulo_nombre"] == "Auth Module"
