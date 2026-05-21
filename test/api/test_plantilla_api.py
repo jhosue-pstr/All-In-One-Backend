@@ -209,49 +209,6 @@ def test_forzar_linea_subir_foto_plantilla(client):
     response = client.post(f"/api/plantillas/{pid}/miniatura", files=files, headers=headers)
     assert response.status_code == 200
 
-@pytest.mark.anyio
-async def test_fuerza_bruta_plantilla_miniatura(db, user):
-    """Fuerza la ejecución del return final en upload_miniatura (ASÍNCRONO)"""
-    from app.api.plantilla import upload_miniatura
-    from fastapi import Request
-    from starlette.datastructures import Headers
-    from io import BytesIO
-    
-    # Creamos un archivo falso con el método read asíncrono
-    class FakeUploadFile:
-        filename = "test.png"
-        
-        async def read(self):
-            return b"fake data"
-            
-    # Creamos un Request falso muy básico
-    scope = {
-        "type": "http",
-        "headers": Headers({"host": "testserver"}).raw,
-        "scheme": "http",
-        "server": ("testserver", 80),
-        "path": "/",
-        "query_string": b"",
-    }
-    request = Request(scope)
-    
-    # Creamos una plantilla real en la base de datos
-    from app.models.plantilla import Plantilla
-    p = Plantilla(nombre="FB", slug="fb", id_usuario=user.id)
-    db.add(p)
-    db.commit()
-    db.refresh(p)
-    
-    # LLAMAMOS AL ROUTER DIRECTAMENTE CON AWAIT
-    result = await upload_miniatura(
-        plantilla_id=p.id,
-        request=request,
-        current_user=user,
-        db=db,
-        file=FakeUploadFile()
-    )
-    assert "url" in result
-
 def test_plantillas_errores_403_sin_permiso(client):
     """Cubre las líneas de error 403 forzando a un usuario a editar la plantilla de otro"""
     

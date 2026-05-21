@@ -132,7 +132,7 @@ def test_upload_miniatura(client, user_data):
     
     # 3. Verificar
     assert response.status_code == 200
-    assert "url" in response.json()  # ← LÍNEA 135 SE CUBRE AQUÍ
+    assert "url" in response.json()
 
 
 def test_update_plantilla_api_unreachable_404(client, monkeypatch):
@@ -175,7 +175,7 @@ def test_upload_miniatura_extension_invalida(client):
     response = client.post(f"/api/plantillas/{pid}/miniatura", files=files, headers=headers)
     
     assert response.status_code == 200
-    assert ".png" in response.json()["url"]  # El sistema debió convertir la extensión
+    assert ".png" in response.json()["url"]
 
 
 def test_get_plantilla_api_not_found(client):
@@ -213,49 +213,3 @@ def test_forzar_linea_subir_foto_plantilla(client):
     files = {"file": ("test.png", b"fake", "image/png")}
     response = client.post(f"/api/plantillas/{pid}/miniatura", files=files, headers=headers)
     assert response.status_code == 200
-
-@pytest.mark.anyio
-async def test_fuerza_bruta_miniatura_return(db, user):
-    """Fuerza la ejecución del return final en upload_miniatura (ASÍNCRONO)
-    
-    Este test cubre la línea 135 que faltaba en app/api/plantilla.py
-    Ahora usa 'await' correctamente para evitar el RuntimeWarning
-    """
-    from app.api.plantilla import upload_miniatura
-    from fastapi import Request
-    from starlette.datastructures import Headers
-    
-    # Creamos un archivo falso con el método read asíncrono
-    class FakeUploadFile:
-        filename = "test.png"
-        
-        async def read(self):
-            return b"fake data"
-            
-    # Creamos un Request falso muy básico
-    scope = {
-        "type": "http",
-        "headers": Headers({"host": "testserver"}).raw,
-        "scheme": "http",
-        "server": ("testserver", 80),
-        "path": "/",
-        "query_string": b"",
-    }
-    request = Request(scope)
-    
-    # Creamos una plantilla real en la base de datos
-    from app.models.plantilla import Plantilla
-    p = Plantilla(nombre="FB", slug="fb", id_usuario=user.id)
-    db.add(p)
-    db.commit()
-    db.refresh(p)
-    
-    # LLAMAMOS AL ROUTER DIRECTAMENTE CON AWAIT (CORREGIDO)
-    result = await upload_miniatura(
-        plantilla_id=p.id,
-        request=request,
-        current_user=user,
-        db=db,
-        file=FakeUploadFile()
-    )
-    assert "url" in result
