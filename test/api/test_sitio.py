@@ -315,3 +315,13 @@ def test_fuerza_bruta_sitio_crear(db, user):
     # Llamamos a la función del router directamente, sin usar el 'client'
     result = crear_sitio(data=data, current_user=user, db=db)
     assert result is not None
+
+def test_es_propietario_directo_falso(db):
+    """Prueba unitaria pura para forzar la línea 32 (return False)"""
+    from app.api.sitio import es_propietario
+    
+    # Llamamos a la función directamente con la base de datos y un ID fantasma (99999)
+    resultado = es_propietario(db=db, sitio_id=99999, usuario_id=1)
+    
+    # Verificamos que obligatoriamente devuelva False
+    assert resultado is False

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import uuid
+import anyio  # <-- IMPORTACIÓN ASÍNCRONA AÑADIDA
 from pathlib import Path
 from app.db.database import get_db
 from app.schemas.sitio import SitioCreate, SitioUpdate, SitioResponse
@@ -28,7 +29,7 @@ ERROR_SIN_PERMISO = "No tienes permiso para editar este sitio"
 def es_propietario(db: Session, sitio_id: int, usuario_id: int):
     sitio = get_sitio(db, sitio_id)
     if not sitio:
-        return False
+        return False  # <-- VAMOS A CUBRIR ESTA LÍNEA
     return sitio.id_usuario == usuario_id
 
 
@@ -38,8 +39,7 @@ def crear_sitio(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
-    # ESCRIBE ESTE COMENTARIO A MANO AL FINAL DE LA LÍNEA:
-    return create_sitio(db, data, current_user.id)  # pragma: no cover
+    return create_sitio(db, data, current_user.id)
 
 
 @router.get("/", response_model=list[SitioResponse])
@@ -121,7 +121,7 @@ def eliminar_sitio(
         404: {"description": "Sitio no encontrado"}
     }
 )
-def upload_miniatura(
+async def upload_miniatura( # <-- FUNCIÓN AHORA ES ASYNC
     sitio_id: int,
     request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -142,9 +142,9 @@ def upload_miniatura(
     file_name = f"{uuid.uuid4()}.{file_ext}"
     file_path = UPLOAD_DIR / file_name
     
-    with open(file_path, "wb") as f:
-        content = file.file.read()
-        f.write(content)
+    # --- ESCRITURA DE ARCHIVO ASÍNCRONA ---
+    content = await file.read()
+    await anyio.Path(file_path).write_bytes(content)
     
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/media/sitios/{file_name}"
