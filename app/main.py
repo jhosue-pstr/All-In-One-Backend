@@ -8,6 +8,7 @@ from sqlalchemy import text
 from pathlib import Path
 from app.db.database import get_db, Base
 import app.models
+import os
 from app.api import (
     auth_router, sitio_router, sitio_modulo_router,
     modulo_router, plantilla_router, site_auth_router,
@@ -61,4 +62,6 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 
 if __name__ == "__main__": # pragma: no cover
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    # Por defecto es seguro (localhost), pero configurable para entornos virtualizados o producción
+    api_host = os.getenv("API_HOST", "127.0.0.1")
+    uvicorn.run("app.main:app", host=api_host, port=8000, reload=True)

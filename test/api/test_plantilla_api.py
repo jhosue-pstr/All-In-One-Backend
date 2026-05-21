@@ -251,3 +251,35 @@ async def test_fuerza_bruta_plantilla_miniatura(db, user):
         file=FakeUploadFile()
     )
     assert "url" in result
+
+def test_plantillas_errores_403_sin_permiso(client):
+    """Cubre las líneas de error 403 forzando a un usuario a editar la plantilla de otro"""
+    
+    # 1. Creamos al Usuario Propietario y su token
+    client.post("/api/auth/registro", json={"correo": "dueno@test.com", "contrasena": "123", "nombre": "Dueño", "apellido": "A"})
+    token_dueno = client.post("/api/auth/inicio", data={"username": "dueno@test.com", "password": "123"}).json()["access_token"]
+    headers_dueno = {"Authorization": f"Bearer {token_dueno}"}
+
+    # 2. El Propietario crea una plantilla
+    resp_crear = client.post("/api/plantillas", json={"nombre": "Privado", "slug": "privado-403"}, headers=headers_dueno)
+    pid = resp_crear.json()["id"]
+
+    # 3. Creamos al Usuario "Intruso" y su token
+    client.post("/api/auth/registro", json={"correo": "intruso@test.com", "contrasena": "123", "nombre": "Intruso", "apellido": "B"})
+    token_intruso = client.post("/api/auth/inicio", data={"username": "intruso@test.com", "password": "123"}).json()["access_token"]
+    headers_intruso = {"Authorization": f"Bearer {token_intruso}"}
+
+    # 4. El Intruso intenta modificar la plantilla (ESTO DISPARA LOS RAISES 403)
+    
+    # A) Intenta hacer UPDATE
+    resp_update = client.put(f"/api/plantillas/{pid}", json={"nombre": "Hackeado"}, headers=headers_intruso)
+    assert resp_update.status_code == 403
+
+    # B) Intenta subir MINIATURA
+    files = {"file": ("test.png", b"fake data", "image/png")}
+    resp_miniatura = client.post(f"/api/plantillas/{pid}/miniatura", files=files, headers=headers_intruso)
+    assert resp_miniatura.status_code == 403
+    
+    # C) Intenta hacer DELETE
+    resp_delete = client.delete(f"/api/plantillas/{pid}", headers=headers_intruso)
+    assert resp_delete.status_code == 403

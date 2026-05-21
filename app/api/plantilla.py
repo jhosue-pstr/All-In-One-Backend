@@ -1,10 +1,11 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import os
 import uuid
+import anyio  # <-- IMPORTAMOS LA LIBRERÍA ASÍNCRONA NATIVA DE FASTAPI
 from pathlib import Path
 from app.db.database import get_db
 from app.schemas.plantilla import PlantillaCreate, PlantillaUpdate, PlantillaResponse
@@ -19,6 +20,7 @@ from app.service.plantilla import (
 )
 from app.api.auth import get_current_user
 from app.models.usuario import User
+from app.models.plantilla import Visibilidad
 
 router = APIRouter(prefix="/plantillas", tags=["plantillas"])
 
@@ -145,9 +147,10 @@ async def upload_miniatura(
     file_name = f"{uuid.uuid4()}.{file_ext}"
     file_path = UPLOAD_DIR / file_name
     
-    with open(file_path, "wb") as f:
-        content = await file.read()  # <-- EL CAMBIO CLAVE
-        f.write(content)
+    # --- EL CAMBIO CLAVE PARA CUMPLIR CON EL LINTER ---
+    content = await file.read()
+    await anyio.Path(file_path).write_bytes(content)
+    # ---------------------------------------------------
     
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/media/plantillas/{file_name}"
