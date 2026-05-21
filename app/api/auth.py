@@ -13,7 +13,7 @@ from app.models.auditoria import Auditoria  # <-- Importado el modelo de auditor
 from app.schemas.usuario import UserCreate, UserResponse, TokenResponse, UserUpdate
 from app.core.config import settings
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Autenticación y Seguridad"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/inicio")
 
@@ -68,7 +68,28 @@ def get_current_user(
     return user
 
 
-@router.post("/registro", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/registro",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar nuevo usuario",
+    description="""
+## Crear cuenta de usuario
+
+Este endpoint permite registrar un nuevo usuario en el sistema.
+
+### Características
+- Encripta contraseña con bcrypt
+- Valida correo único
+- Genera auditoría automática
+
+### Roles permitidos
+- Público
+
+### Resultado
+Retorna los datos del usuario creado.
+""",
+)
 def registro(
     user_data: Annotated[UserCreate, Body()],
     db: Annotated[Session, Depends(get_db)]
@@ -111,7 +132,23 @@ def registro(
     return new_user
 
 
-@router.post("/inicio", response_model=TokenResponse)
+@router.post(
+    "/inicio",
+    response_model=TokenResponse,
+    summary="Iniciar sesión",
+    description="""
+## Autenticación JWT
+
+Permite autenticar usuarios mediante correo y contraseña.
+
+### Retorna
+- Access Token JWT
+- Tipo de token
+
+### Notas
+El campo `username` corresponde al correo.
+""",
+)
 def inicio(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)]
@@ -128,14 +165,44 @@ def inicio(
     return TokenResponse(access_token=access_token)
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Obtener perfil actual",
+    description="""
+## Perfil del usuario autenticado
+
+Retorna la información del usuario autenticado mediante JWT.
+
+### Requiere
+- Bearer Token válido
+""",
+)
 def read_users_me(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
     return current_user
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put(
+    "/me",
+    response_model=UserResponse,
+    summary="Actualizar perfil",
+    description="""
+## Actualización de perfil
+
+Permite modificar información del usuario autenticado.
+
+### Campos editables
+- Nombre
+- Apellido
+- Contraseña
+
+### Seguridad
+- Contraseña cifrada automáticamente
+- Auditoría UPDATE automática
+""",
+)
 def update_user(
     user_data: UserUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
