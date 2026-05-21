@@ -324,3 +324,18 @@ def test_create_access_token(db):
     token = services.create_access_token(data={"sub": "123", "test": "data"})
     assert token is not None
     assert len(token) > 0
+
+def test_verify_token_usuario_sitio_sin_sub(db):
+    """
+    Cubre la línea 98: Un token válido en su firma, pero que no contiene el atributo 'sub'.
+    """
+    from jose import jwt
+    from app.core.config import settings
+    from app.packages.modulos.SiteAuth.services import usuario_sitio as services
+
+    # Fabricamos un token matemáticamente correcto, pero con un payload inútil (sin 'sub')
+    token_sin_sub = jwt.encode({"email": "hacker@test.com"}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    result = services.verify_token_usuario_sitio(db, token_sin_sub)
+    
+    assert result is None

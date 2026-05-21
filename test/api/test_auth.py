@@ -150,3 +150,38 @@ def test_update_me_contrasena(client, user_data):
         }
     )
     assert login_response2.status_code == 200
+
+def test_get_current_user_token_sin_sub(client):
+    from jose import jwt
+    from app.core.config import settings
+    
+    # Creamos un token válido pero sin el campo 'sub'
+    token = jwt.encode({"email": "hacker@test.com"}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    
+    assert response.status_code == 401
+
+def test_get_current_user_usuario_borrado(client):
+    from jose import jwt
+    from app.core.config import settings
+    
+    # Creamos un token para un ID que no existe (99999)
+    token = jwt.encode({"sub": "99999"}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    
+    assert response.status_code == 401
+
+def test_update_user_apellido(client):
+    # Cobertura para la línea donde se actualiza específicamente el apellido
+    client.post("/api/auth/registro", json={"correo": "apellido@test.com", "contrasena": "123", "nombre": "A", "apellido": "B"})
+    login = client.post("/api/auth/inicio", data={"username": "apellido@test.com", "password": "123"})
+    token = login.json()["access_token"]
+    
+    response = client.put(
+        "/api/auth/me", 
+        json={"apellido": "C"}, 
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    
+    assert response.status_code == 200
+    assert response.json()["apellido"] == "C"

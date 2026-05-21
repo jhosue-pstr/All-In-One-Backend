@@ -36,10 +36,6 @@ def get_plantilla(db: Session, plantilla_id: int):
     return db.query(Plantilla).filter(Plantilla.id == plantilla_id, Plantilla.activo == True).first()
 
 
-def get_plantillas(db: Session):
-    # FILTRO SOFT DELETE: Solo traer si activo es True
-    return db.query(Plantilla).filter(Plantilla.activo == True).all()
-
 
 def get_plantillas_publicas(db: Session):
     # FILTRO SOFT DELETE: Solo traer si activo es True
@@ -111,4 +107,4 @@ def delete_plantilla(db: Session, plantilla_id: int, user_id: int = None):
 
 def es_propietario(db: Session, plantilla_id: int, user_id: int) -> bool:
     obj = get_plantilla(db, plantilla_id)
-    return obj and obj.id_usuario == user_id
+    return obj is not None and obj.id_usuario == user_id

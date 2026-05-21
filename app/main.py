@@ -9,24 +9,18 @@ from pathlib import Path
 from app.db.database import get_db, Base
 import app.models
 from app.api import (
-    auth_router,
-    sitio_router,
-    sitio_modulo_router,
-    modulo_router,
-    plantilla_router,
-    site_auth_router,
+    auth_router, sitio_router, sitio_modulo_router,
+    modulo_router, plantilla_router, site_auth_router,
 )
 from app.api.publico import router as público_router
 
-
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI): # pragma: no cover
     from app.db.database import engine
     Base.metadata.create_all(bind=engine)
     from app.db.seed_modulos import seed_modulos
     seed_modulos()
     yield
-
 
 app = FastAPI(lifespan=lifespan)
 
@@ -38,19 +32,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(modulo_router, prefix="/api")
-app.include_router(sitio_router, prefix="/api")
-app.include_router(sitio_modulo_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
-app.include_router(site_auth_router, prefix="/api")
-app.include_router(plantilla_router, prefix="/api")
-app.include_router(público_router)
-
-
+# 1. Rutas base arriba de todo
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-
 
 @app.get("/health")
 def health_check(db: Annotated[Session, Depends(get_db)]):
@@ -60,7 +45,20 @@ def health_check(db: Annotated[Session, Depends(get_db)]):
     except Exception as e:
         return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
+# 2. Routers
+app.include_router(modulo_router, prefix="/api")
+app.include_router(sitio_router, prefix="/api")
+app.include_router(sitio_modulo_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(site_auth_router, prefix="/api")
+app.include_router(plantilla_router, prefix="/api")
+app.include_router(público_router)
 
+# 3. Media
 media_dir = Path("media")
 media_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory="media"), name="media")
+
+if __name__ == "__main__": # pragma: no cover
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

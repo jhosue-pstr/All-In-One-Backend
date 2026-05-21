@@ -131,3 +131,18 @@ def test_auditoria_registra_cambios_al_actualizar_modulo(db, user):
     assert log.usuario_id == user.id
     assert log.valores_anteriores["nombre"] == "Modulo Viejo"
     assert log.valores_nuevos["nombre"] == "Modulo Actualizado"
+
+def test_update_modulo_not_found(db):
+    """Cubre la línea faltante cuando se intenta actualizar un módulo inexistente"""
+    from app.schemas.modulo import ModuloUpdate
+    from app.service.modulo import update_modulo
+    
+    result = update_modulo(db, 9999, ModuloUpdate(nombre="Nada"))
+    assert result is None
+
+def test_delete_modulo_not_found(db):
+    """Cubre la línea faltante cuando se intenta eliminar un módulo inexistente"""
+    from app.service.modulo import delete_modulo
+    
+    result = delete_modulo(db, 9999)
+    assert result is None

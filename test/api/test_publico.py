@@ -101,3 +101,46 @@ def test_render_sitio_vacio(client: TestClient, db):
 
     assert response.status_code == 200
     assert "construcción" in response.text.lower()
+
+def test_render_sitio_sin_html(client, db):
+    """Cubre la línea de inyección de recursos cuando NO hay HTML configurado"""
+    from app.models.sitio import Sitio
+
+    sitio = Sitio(
+        nombre="Sitio Vacio Absoluto",
+        slug="sitio-vacio-absoluto",
+        activo=True,
+        configuracion=None
+    )
+    db.add(sitio)
+    db.commit()
+    db.refresh(sitio)
+
+    response = client.get("/sitio-vacio-absoluto")
+
+    assert response.status_code == 200
+    assert "construcción" in response.text.lower()
+
+def test_render_sitio_inyector_recursos_alternativo(client, db):
+    """Cubre las ramas 'else' del inyector de recursos (cuando no hay </head> o </body>)"""
+    from app.models.sitio import Sitio
+
+    sitio = Sitio(
+        nombre="Sitio Roto",
+        slug="sitio-roto",
+        activo=True,
+        configuracion={
+            "html": "<div>Hola</div>", # Sin head ni body
+            "css": "div {color: red;}",
+            "js": "alert('hola');"
+        }
+    )
+    db.add(sitio)
+    db.commit()
+    db.refresh(sitio)
+
+    response = client.get("/sitio-roto")
+
+    assert response.status_code == 200
+    assert "<style>" in response.text
+    assert "<script>" in response.text

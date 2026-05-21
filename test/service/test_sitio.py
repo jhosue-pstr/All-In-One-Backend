@@ -289,3 +289,52 @@ def test_create_sitio_with_plantilla_config(db):
     sitio = create_sitio(db, data)
 
     assert sitio.configuracion == {"html": "<div>Blog</div>"}
+
+def test_create_sitio_plantilla_inexistente(db, user):
+    """Cubre las líneas donde se verifica la plantilla; si no existe, la omite sin fallar"""
+    from app.schemas.sitio import SitioCreate
+    from app.service.sitio import create_sitio
+    
+    data = SitioCreate(
+        nombre="Test Sin Plantilla", 
+        slug="test-sin-plantilla-123", 
+        id_plantilla=9999
+    )
+    sitio = create_sitio(db, data, user.id)
+    
+    assert sitio.id is not None
+    assert sitio.configuracion is None  # Demuestra que omitió la copia de la plantilla
+
+def test_update_sitio_not_found(db):
+    """Cubre el return None al intentar actualizar un sitio inexistente"""
+    from app.schemas.sitio import SitioUpdate
+    from app.service.sitio import update_sitio
+    
+    result = update_sitio(db, 9999, SitioUpdate(nombre="Nada"))
+    assert result is None
+
+def test_delete_sitio_not_found(db):
+    """Cubre el return None al intentar eliminar un sitio inexistente"""
+    from app.service.sitio import delete_sitio
+    
+    result = delete_sitio(db, 9999)
+    assert result is None
+
+def test_create_sitio_plantilla_con_switches(db, user):
+    """Cubre la línea de hasattr(plantilla, 'switches')"""
+    from app.models.plantilla import Plantilla
+    from app.schemas.sitio import SitioCreate
+    from app.service.sitio import create_sitio
+    
+    plantilla = Plantilla(nombre="Con Switches", slug="con-switches")
+    db.add(plantilla)
+    db.commit()
+    db.refresh(plantilla)
+    
+    # Inyectamos el atributo artificialmente para la prueba
+    plantilla.switches = {"dark_mode": True} 
+    
+    data = SitioCreate(nombre="Test SW", slug="test-sw", id_plantilla=plantilla.id)
+    sitio = create_sitio(db, data, user.id)
+    
+    assert sitio.switches == {"dark_mode": True}

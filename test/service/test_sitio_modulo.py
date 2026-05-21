@@ -122,3 +122,20 @@ def test_auditoria_registra_cuando_se_agrega_modulo_a_sitio(db, user):
     assert log.valores_nuevos["modulo_id"] == modulo.id
     # Corregimos la llave al nombre correcto:
     assert log.valores_nuevos["modulo_nombre"] == "Auth Module"
+
+def test_quitar_modulo_inexistente_pero_sitio_existe(db):
+    """
+    Cubre la línea 43: El sitio existe, pero se intenta quitar un ID de módulo que no existe.
+    """
+    from app.models.sitio import Sitio
+    from app.service.sitio_modulo import quitar_modulo_de_sitio
+
+    sitio = Sitio(nombre="Sitio Cobertura", slug="sitio-cob")
+    db.add(sitio)
+    db.commit()
+    db.refresh(sitio)
+
+    # 9999 es un ID de módulo que sabemos que no existe
+    result = quitar_modulo_de_sitio(db, sitio.id, 9999)
+
+    assert result is None

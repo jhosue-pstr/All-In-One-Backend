@@ -112,9 +112,7 @@ def delete_sitio(db: Session, sitio_id: int, usuario_id: int = None):
         valores_nuevos=None
     )
     db.add(auditoria)
-    # --- FIN AUDITORÍA ---
 
-    # TRUCO SOFT DELETE: Cambiamos el estado en vez de db.delete()
     obj.activo = False
     db.commit()
     return obj

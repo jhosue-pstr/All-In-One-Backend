@@ -67,3 +67,4 @@ def get_modulos_del_sitio(db: Session, sitio_id: int):
     if not sitio:
         return None
     return sitio.modulos
+

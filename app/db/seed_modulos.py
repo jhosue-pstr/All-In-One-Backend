@@ -32,5 +32,5 @@ def seed_modulos():
     print("✓ Seed de módulos completado")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     seed_modulos()

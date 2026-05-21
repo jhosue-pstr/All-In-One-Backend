@@ -1,7 +1,7 @@
 from app.schemas.plantilla import PlantillaCreate, PlantillaUpdate
 from app.service.plantilla import (
     create_plantilla,
-    get_plantillas,
+    
     get_plantilla,
     get_plantillas_publicas,
     get_plantillas_del_usuario,
@@ -101,3 +101,62 @@ def test_eliminar_plantilla(db):
     # Comprobamos el Soft Delete
     assert result is not None, "El registro físico no debería borrarse"
     assert result.activo is False, "El estado debió cambiar a False"
+
+def test_upload_miniatura_exitoso_final(client):
+    """Cubre el return final de upload_miniatura al 100% con un caso de éxito real"""
+    client.post("/api/auth/registro", json={"correo": "foto_final@test.com", "contrasena": "123", "nombre": "A", "apellido": "B"})
+    login = client.post("/api/auth/inicio", data={"username": "foto_final@test.com", "password": "123"})
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    create_resp = client.post("/api/plantillas", json={"nombre": "Foto", "slug": "foto-final"}, headers=headers)
+    pid = create_resp.json()["id"]
+    
+    files = {"file": ("foto.png", b"data de prueba", "image/png")}
+    response = client.post(f"/api/plantillas/{pid}/miniatura", files=files, headers=headers)
+    
+    assert response.status_code == 200
+    assert "url" in response.json()
+
+def test_get_publicas_directo(client):
+    """Cubre la línea 36 (Ruta /publicas) directamente en este archivo"""
+    response = client.get("/api/plantillas/publicas")
+    assert response.status_code == 200
+
+def test_get_mis_plantillas_directo(client):
+    """Cubre la línea 44 (Ruta /mis-plantillas) directamente en este archivo"""
+    client.post("/api/auth/registro", json={"correo": "mis_plan_dir@test.com", "contrasena": "123", "nombre": "A", "apellido": "B"})
+    login = client.post("/api/auth/inicio", data={"username": "mis_plan_dir@test.com", "password": "123"})
+    token = login.json()["access_token"]
+    
+    response = client.get("/api/plantillas/mis-plantillas", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+
+def test_fuerza_bruta_miniatura_return(db, user):
+    """Cubre la línea 136 inyectando el request directamente al router"""
+    from app.api.plantilla import upload_miniatura
+    from app.models.plantilla import Plantilla
+    from fastapi import Request
+    from starlette.datastructures import Headers
+    from io import BytesIO
+    
+    class FakeUploadFile:
+        filename = "test.png"
+        file = BytesIO(b"fake")
+        
+    request = Request({
+        "type": "http",
+        "headers": Headers({"host": "testserver"}).raw,
+        "scheme": "http",
+        "server": ("testserver", 80),
+        "path": "/",
+        "query_string": b"",
+    })
+    
+    p = Plantilla(nombre="FB-Return", slug="fb-ret", id_usuario=user.id)
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    
+    result = upload_miniatura(plantilla_id=p.id, request=request, current_user=user, db=db, file=FakeUploadFile())
+    assert result is not None

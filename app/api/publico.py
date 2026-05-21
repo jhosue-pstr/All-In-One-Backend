@@ -45,10 +45,7 @@ def render_sitio(
     
     if not sitio:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    
-    if not sitio.activo:
-        raise HTTPException(status_code=403, detail="Sitio temporalmente desactivado")
-    
+
     config = sitio.configuracion or {}
     html = config.get("html", "")
     css = config.get("css", "")

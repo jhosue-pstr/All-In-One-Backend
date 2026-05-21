@@ -151,3 +151,43 @@ def test_auditoria_registra_cambios_al_actualizar_plantilla(db, user):
     assert log.usuario_id == user.id
     assert log.valores_anteriores["nombre"] == "Plantilla Original"
     assert log.valores_nuevos["nombre"] == "Plantilla Actualizada"
+
+def test_update_plantilla_not_found(db):
+    """Cubre el return None al intentar actualizar una plantilla inexistente"""
+    from app.schemas.plantilla import PlantillaUpdate
+    from app.service.plantilla import update_plantilla
+    
+    result = update_plantilla(db, 9999, PlantillaUpdate(nombre="Nada"))
+    assert result is None
+
+def test_delete_plantilla_not_found(db):
+    """Cubre el return None al intentar eliminar una plantilla inexistente"""
+    from app.service.plantilla import delete_plantilla
+    
+    result = delete_plantilla(db, 9999)
+    assert result is None
+
+def test_es_propietario_not_found(db):
+    """Cubre el return False al buscar la propiedad de una plantilla inexistente"""
+    from app.service.plantilla import es_propietario
+    
+    result = es_propietario(db, 9999, 1)
+    assert result is False
+
+def test_create_plantilla_sin_usuario(db):
+    """Cubre el bloque if user_id: cuando es None"""
+    from app.schemas.plantilla import PlantillaCreate
+    from app.service.plantilla import create_plantilla
+    
+    data = PlantillaCreate(nombre="Sin Owner", slug="sin-owner-test")
+    plantilla = create_plantilla(db, data)
+    
+    assert plantilla.id is not None
+    assert plantilla.id_usuario is None
+
+def test_get_plantillas_del_usuario_vacio(db):
+    """Cubre la consulta ORM explícita para un usuario que no tiene plantillas"""
+    from app.service.plantilla import get_plantillas_del_usuario
+    result = get_plantillas_del_usuario(db, 99999)
+    assert isinstance(result, list)
+    assert len(result) == 0
