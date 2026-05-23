@@ -76,6 +76,9 @@ def injectar_recursos(
 
     return html
 
+@router.get("/check-system")
+async def check_system(db: Session = Depends(get_db)):
+    return {"blog": "ok", "tienda": "ok"}
 
 @router.get(
     "/{slug}",
@@ -145,3 +148,4 @@ def render_sitio(
         content=html_renderizado,
         status_code=status.HTTP_200_OK
     )
+

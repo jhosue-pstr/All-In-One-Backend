@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Any
 from datetime import datetime
 
@@ -32,8 +32,7 @@ class CategoriaResponse(CategoriaBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoriaSimple(BaseModel):
@@ -41,8 +40,7 @@ class CategoriaSimple(BaseModel):
     nombre: str
     slug: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductoBase(BaseModel):
@@ -93,8 +91,7 @@ class ProductoResponse(ProductoBase):
     updated_at: datetime
     categoria: Optional[CategoriaSimple] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductoListado(BaseModel):
@@ -109,8 +106,7 @@ class ProductoListado(BaseModel):
     es_featured: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ItemPedidoBase(BaseModel):
@@ -125,8 +121,7 @@ class ItemPedidoResponse(ItemPedidoBase):
     id: int
     total: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PedidoBase(BaseModel):
@@ -166,8 +161,7 @@ class PedidoResponse(PedidoBase):
     updated_at: datetime
     items: list[ItemPedidoResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PedidoListado(BaseModel):
@@ -180,8 +174,7 @@ class PedidoListado(BaseModel):
     total: float
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ItemCarritoBase(BaseModel):
@@ -201,8 +194,7 @@ class ItemCarritoResponse(BaseModel):
     cantidad: int
     producto: ProductoListado
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CarritoResponse(BaseModel):
@@ -211,8 +203,7 @@ class CarritoResponse(BaseModel):
     items: list[ItemCarritoResponse] = []
     total: float = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckoutRequest(BaseModel):

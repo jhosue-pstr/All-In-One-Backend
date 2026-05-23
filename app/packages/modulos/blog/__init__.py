@@ -1,5 +1,5 @@
-from packages.modulos.blog.module import Module
-from packages.modulos.blog.models import Category, Post
+from app.packages.modulos.blog.module import Module
+from app.packages.modulos.blog.models import Category, Post
 
 class BlogModule(Module):
     name = "Blog"
@@ -14,8 +14,8 @@ class BlogModule(Module):
         return [Post, Category]
 
     def get_schemas(self):
-        from .schemas import PostSchema, CategorySchema
-        return [PostSchema, CategorySchema]
-
+        # ¡CORREGIDO! Usamos los nombres reales que tienes en schemas.py
+        from .schemas import PostResponse, CategoryResponse
+        return [PostResponse, CategoryResponse]
 
 blog_module = BlogModule()

@@ -5,7 +5,6 @@ if TYPE_CHECKING:
     from fastapi import FastAPI
     from sqlalchemy.orm import Session
 
-
 class Module(ABC):
     name: str = ""
     slug: str = ""
@@ -21,11 +20,11 @@ class Module(ABC):
 
     @abstractmethod
     def get_models(self):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def get_schemas(self):
-        pass
+        pass  # pragma: no cover
 
     def on_activate(self, site_id: int, db: "Session", config: dict):
         pass

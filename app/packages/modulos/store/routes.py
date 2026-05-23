@@ -1,72 +1,44 @@
-import sys
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/packages")
-
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 from typing import List, Optional
 
 from app.db.database import get_db
 from app.models.sitio import Sitio
-from app.models.sitio_modulo import SiteModule
-from packages.core.models.module import Module
-from packages.modules.store.models import Carrito, ItemCarrito, Producto
-from packages.modules.store.schemas import (
+
+# --- MÓDULO STORE ---
+from app.packages.modulos.store.models import Carrito, ItemCarrito, Producto
+from app.packages.modulos.store.schemas import (
     CategoriaCreate, CategoriaUpdate, CategoriaResponse,
     ProductoCreate, ProductoUpdate, ProductoResponse, ProductoListado,
     PedidoListado, PedidoResponse, PedidoUpdateEstado,
     CarritoResponse, ItemCarritoCreate, ItemCarritoResponse,
     CheckoutRequest, CheckoutResponse
 )
-from packages.modules.store.services import StoreService
+from app.packages.modulos.store.services import StoreService
 
 
-router = APIRouter(prefix="/api/v1/sites/{site_id}/tienda", tags=["tienda"])
-
-
-async def get_site_tienda_module(db: AsyncSession, site_id: int) -> SiteModule | None:
-    """Obtiene el site_module de tienda para un sitio"""
-    result = await db.execute(
-        select(Module).where(Module.slug == "tienda")
-    )
-    module = result.scalar_one_or_none()
-    
-    if not module:
-        return None
-    
-    result = await db.execute(
-        select(SiteModule).where(
-            and_(
-                SiteModule.site_id == site_id,
-                SiteModule.module_id == module.id,
-                SiteModule.is_active == True
-            )
-        )
-    )
-    return result.scalar_one_or_none()
-
+router = APIRouter(prefix="/api/v1/sitios/{sitio_id}/tienda", tags=["tienda"])
 
 # ==================== PRODUCTOS ====================
 
 @router.get("/productos", response_model=dict)
-async def listar_productos(
-    site_id: int,
+def listar_productos(
+    sitio_id: int,
     categoria_id: Optional[int] = None,
     pagina: int = 1,
     por_pagina: int = 20,
     solo_activos: bool = True,
     featured: bool = False,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Listar productos de la tienda"""
-    # Verificar que el sitio existe
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    productos, total = await service.listar_productos(
+    service = StoreService(db, sitio_id)
+    productos, total = service.listar_productos(
         categoria_id=categoria_id,
         solo_activos=solo_activos,
         featured=featured,
@@ -87,34 +59,34 @@ async def listar_productos(
 
 
 @router.post("/productos", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
-async def crear_producto(
-    site_id: int,
+def crear_producto(
+    sitio_id: int,
     producto_data: ProductoCreate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Crear un nuevo producto"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    producto = await service.crear_producto(producto_data)
+    service = StoreService(db, sitio_id)
+    producto = service.crear_producto(producto_data)
     return producto
 
 
 @router.get("/productos/{producto_id}", response_model=ProductoResponse)
-async def obtener_producto(
-    site_id: int,
+def obtener_producto(
+    sitio_id: int,
     producto_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Obtener un producto por ID"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    producto = await service.get_producto(producto_id)
+    service = StoreService(db, sitio_id)
+    producto = service.get_producto(producto_id)
     
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -123,19 +95,19 @@ async def obtener_producto(
 
 
 @router.put("/productos/{producto_id}", response_model=ProductoResponse)
-async def actualizar_producto(
-    site_id: int,
+def actualizar_producto(
+    sitio_id: int,
     producto_id: int,
     producto_data: ProductoUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Actualizar un producto"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    producto = await service.actualizar_producto(producto_id, producto_data)
+    service = StoreService(db, sitio_id)
+    producto = service.actualizar_producto(producto_id, producto_data)
     
     if not producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -144,18 +116,18 @@ async def actualizar_producto(
 
 
 @router.delete("/productos/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def eliminar_producto(
-    site_id: int,
+def eliminar_producto(
+    sitio_id: int,
     producto_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Eliminar un producto"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    eliminado = await service.eliminar_producto(producto_id)
+    service = StoreService(db, sitio_id)
+    eliminado = service.eliminar_producto(producto_id)
     
     if not eliminado:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
@@ -166,18 +138,18 @@ async def eliminar_producto(
 # ==================== CATEGORÍAS ====================
 
 @router.get("/categorias", response_model=dict)
-async def listar_categorias(
-    site_id: int,
+def listar_categorias(
+    sitio_id: int,
     solo_activas: bool = True,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Listar categorías de productos"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    categorias = await service.listar_categorias(solo_activas=solo_activas)
+    service = StoreService(db, sitio_id)
+    categorias = service.listar_categorias(solo_activas=solo_activas)
     
     return {
         "success": True,
@@ -186,34 +158,34 @@ async def listar_categorias(
 
 
 @router.post("/categorias", response_model=CategoriaResponse, status_code=status.HTTP_201_CREATED)
-async def crear_categoria(
-    site_id: int,
+def crear_categoria(
+    sitio_id: int,
     categoria_data: CategoriaCreate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Crear una nueva categoría"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    categoria = await service.crear_categoria(categoria_data)
+    service = StoreService(db, sitio_id)
+    categoria = service.crear_categoria(categoria_data)
     return categoria
 
 
 @router.get("/categorias/{categoria_id}", response_model=CategoriaResponse)
-async def obtener_categoria(
-    site_id: int,
+def obtener_categoria(
+    sitio_id: int,
     categoria_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Obtener una categoría por ID"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    categoria = await service.get_categoria(categoria_id)
+    service = StoreService(db, sitio_id)
+    categoria = service.get_categoria(categoria_id)
     
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
@@ -222,19 +194,19 @@ async def obtener_categoria(
 
 
 @router.put("/categorias/{categoria_id}", response_model=CategoriaResponse)
-async def actualizar_categoria(
-    site_id: int,
+def actualizar_categoria(
+    sitio_id: int,
     categoria_id: int,
     categoria_data: CategoriaUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Actualizar una categoría"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    categoria = await service.actualizar_categoria(categoria_id, categoria_data)
+    service = StoreService(db, sitio_id)
+    categoria = service.actualizar_categoria(categoria_id, categoria_data)
     
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
@@ -243,18 +215,18 @@ async def actualizar_categoria(
 
 
 @router.delete("/categorias/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def eliminar_categoria(
-    site_id: int,
+def eliminar_categoria(
+    sitio_id: int,
     categoria_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Eliminar una categoría"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    eliminado = await service.eliminar_categoria(categoria_id)
+    service = StoreService(db, sitio_id)
+    eliminado = service.eliminar_categoria(categoria_id)
     
     if not eliminado:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
@@ -265,20 +237,20 @@ async def eliminar_categoria(
 # ==================== PEDIDOS ====================
 
 @router.get("/pedidos", response_model=dict)
-async def listar_pedidos(
-    site_id: int,
+def listar_pedidos(
+    sitio_id: int,
     estado: Optional[str] = None,
     pagina: int = 1,
     por_pagina: int = 20,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Listar pedidos del sitio"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    pedidos, total = await service.listar_pedidos(
+    service = StoreService(db, sitio_id)
+    pedidos, total = service.listar_pedidos(
         estado=estado,
         page=pagina,
         per_page=por_pagina
@@ -297,18 +269,18 @@ async def listar_pedidos(
 
 
 @router.get("/pedidos/{pedido_id}", response_model=PedidoResponse)
-async def obtener_pedido(
-    site_id: int,
+def obtener_pedido(
+    sitio_id: int,
     pedido_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Obtener un pedido por ID"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    pedido = await service.get_pedido(pedido_id)
+    service = StoreService(db, sitio_id)
+    pedido = service.get_pedido(pedido_id)
     
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido no encontrado")
@@ -317,21 +289,21 @@ async def obtener_pedido(
 
 
 @router.put("/pedidos/{pedido_id}/estado", response_model=PedidoResponse)
-async def actualizar_estado_pedido(
-    site_id: int,
+def actualizar_estado_pedido(
+    sitio_id: int,
     pedido_id: int,
     data: PedidoUpdateEstado,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Actualizar el estado de un pedido"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
+    service = StoreService(db, sitio_id)
     
     try:
-        pedido = await service.actualizar_estado_pedido(pedido_id, data.estado)
+        pedido = service.actualizar_estado_pedido(pedido_id, data.estado)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -344,32 +316,32 @@ async def actualizar_estado_pedido(
 # ==================== CARRITO ====================
 
 @router.get("/carrito", response_model=CarritoResponse)
-async def obtener_carrito(
-    site_id: int,
+def obtener_carrito(
+    sitio_id: int,
     usuario_id: int = None,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    """Obtener el carrito actual - usa usuario_id del query param"""
+    """Obtener el carrito actual"""
     try:
-        result = await db.execute(select(Site).where(Site.id == site_id))
+        result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
         if not usuario_id:
-            return CarritoResponse(id=0, site_id=site_id, items=[], total=0)
+            return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
         
-        result = await db.execute(
+        result = db.execute(
             select(Carrito).where(
-                Carrito.site_id == site_id,
+                Carrito.site_id == sitio_id,
                 Carrito.usuario_id == usuario_id
             )
         )
         carrito = result.scalar_one_or_none()
         
         if not carrito:
-            return CarritoResponse(id=0, site_id=site_id, items=[], total=0)
+            return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
         
-        result = await db.execute(
+        result = db.execute(
             select(ItemCarrito).where(ItemCarrito.carrito_id == carrito.id)
         )
         items = result.scalars().all()
@@ -377,7 +349,7 @@ async def obtener_carrito(
         items_response = []
         total = 0
         for item in items:
-            result = await db.execute(
+            result = db.execute(
                 select(Producto).where(Producto.id == item.producto_id, Producto.es_activo == True)
             )
             producto = result.scalar_one_or_none()
@@ -393,25 +365,25 @@ async def obtener_carrito(
         
         return CarritoResponse(
             id=carrito.id,
-            site_id=site_id,
+            site_id=sitio_id,
             items=items_response,
             total=total
         )
     except Exception as e:
         print(f"Error en carrito: {e}")
-        return CarritoResponse(id=0, site_id=site_id, items=[], total=0)
+        return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
 
 
 @router.post("/carrito/items", response_model=ItemCarritoResponse)
-async def agregar_al_carrito(
-    site_id: int,
+def agregar_al_carrito(
+    sitio_id: int,
     item_data: ItemCarritoCreate,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    """Agregar un producto al carrito - usa usuario_id del body"""
+    """Agregar un producto al carrito"""
     try:
-        result = await db.execute(select(Site).where(Site.id == site_id))
+        result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
@@ -420,10 +392,10 @@ async def agregar_al_carrito(
         if not usuario_id:
             raise HTTPException(status_code=400, detail="Usuario no identificado")
         
-        service = StoreService(db, site_id)
+        service = StoreService(db, sitio_id)
         
         try:
-            item, nuevo_session_id = await service.agregar_al_carrito(
+            item, nuevo_session_id = service.agregar_al_carrito(
                 producto_id=item_data.producto_id,
                 cantidad=item_data.cantidad,
                 usuario_id=usuario_id,
@@ -432,7 +404,7 @@ async def agregar_al_carrito(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         
-        await db.refresh(item, ["producto"])
+        db.refresh(item, ["producto"])
         
         return ItemCarritoResponse(
             id=item.id,
@@ -448,24 +420,24 @@ async def agregar_al_carrito(
 
 
 @router.put("/carrito/items/{item_id}", response_model=ItemCarritoResponse)
-async def actualizar_cantidad_carrito(
-    site_id: int,
+def actualizar_cantidad_carrito(
+    sitio_id: int,
     item_id: int,
     cantidad: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Actualizar la cantidad de un item en el carrito"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    item = await service.actualizar_cantidad_carrito(item_id, cantidad)
+    service = StoreService(db, sitio_id)
+    item = service.actualizar_cantidad_carrito(item_id, cantidad)
     
     if not item:
         raise HTTPException(status_code=404, detail="Item no encontrado")
     
-    await db.refresh(item, ["producto"])
+    db.refresh(item, ["producto"])
     
     return ItemCarritoResponse(
         id=item.id,
@@ -476,18 +448,18 @@ async def actualizar_cantidad_carrito(
 
 
 @router.delete("/carrito/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def eliminar_del_carrito(
-    site_id: int,
+def eliminar_del_carrito(
+    sitio_id: int,
     item_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Eliminar un item del carrito"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    service = StoreService(db, site_id)
-    eliminado = await service.eliminar_del_carrito(item_id)
+    service = StoreService(db, sitio_id)
+    eliminado = service.eliminar_del_carrito(item_id)
     
     if not eliminado:
         raise HTTPException(status_code=404, detail="Item no encontrado")
@@ -495,27 +467,24 @@ async def eliminar_del_carrito(
     return None
 
 
-
 @router.post("/checkout", response_model=CheckoutResponse)
-async def realizar_checkout(
-    site_id: int,
+def realizar_checkout(
+    sitio_id: int,
     checkout_data: CheckoutRequest,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Procesar el checkout y crear un pedido"""
-    result = await db.execute(select(Site).where(Site.id == site_id))
+    result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
-    session_id = request.cookies.get("carrito_session") or None
-    
     usuario_id = checkout_data.usuario_id if hasattr(checkout_data, 'usuario_id') and checkout_data.usuario_id else None
     
-    service = StoreService(db, site_id)
+    service = StoreService(db, sitio_id)
     
     try:
-        pedido = await service.crear_pedido(checkout_data, usuario_id=usuario_id)
+        pedido = service.crear_pedido(checkout_data, usuario_id=usuario_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

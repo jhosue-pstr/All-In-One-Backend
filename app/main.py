@@ -9,11 +9,17 @@ from pathlib import Path
 from app.db.database import get_db, Base
 import app.models
 import os
+
+# Imports del Core
 from app.api import (
     auth_router, sitio_router, sitio_modulo_router,
     modulo_router, plantilla_router, site_auth_router,
 )
 from app.api.publico import router as público_router
+
+# --- IMPORTAMOS LOS ROUTERS DE TUS MÓDULOS ---
+from app.packages.modulos.blog.routes import router as blog_router
+from app.packages.modulos.store.routes import router as store_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI): # pragma: no cover
@@ -21,6 +27,11 @@ async def lifespan(app: FastAPI): # pragma: no cover
     Base.metadata.create_all(bind=engine)
     from app.db.seed_modulos import seed_modulos
     seed_modulos()
+    yield
+
+    for route in app.routes:
+        if hasattr(route, "path"):
+            print(f"Ruta cargada: {route.path}")
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -54,6 +65,11 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(site_auth_router, prefix="/api")
 app.include_router(plantilla_router, prefix="/api")
 app.include_router(público_router)
+
+# --- REGISTRAMOS LOS ROUTERS DE LOS MÓDULOS ---
+# Ya traen su propio prefijo configurado en sus archivos routes.py
+app.include_router(blog_router)
+app.include_router(store_router)
 
 # 3. Media
 media_dir = Path("media")

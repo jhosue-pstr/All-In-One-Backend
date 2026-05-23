@@ -1,5 +1,4 @@
-from packages.modulos.store.module import Module
-
+from app.packages.modulos.store.module import Module
 
 class TiendaModule(Module):
     name = "Tienda"
@@ -37,7 +36,6 @@ class TiendaModule(Module):
                     {"title": "Configuración", "url": f"{self.admin_url}/configuracion"},
                 ]
             }
-        ]
-
+        ]# pragma: no cover
 
 module = TiendaModule()

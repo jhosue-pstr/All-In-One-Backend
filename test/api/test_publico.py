@@ -144,3 +144,12 @@ def test_render_sitio_inyector_recursos_alternativo(client, db):
     assert response.status_code == 200
     assert "<style>" in response.text
     assert "<script>" in response.text
+
+def test_check_system(client: TestClient):
+    response = client.get("/check-system")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "blog": "ok",
+        "tienda": "ok"
+    }

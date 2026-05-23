@@ -5,6 +5,18 @@ from app.models.auditoria import Auditoria
 from app.schemas.plantilla import PlantillaUpdate
 from app.service.plantilla import update_plantilla
 
+
+from sqlalchemy import text
+from app.db.database import engine
+from sqlalchemy.orm import Session as DBSession
+
+@pytest.fixture(autouse=True)
+def limpiar_plantillas():
+    with DBSession(engine) as db:
+        db.execute(text("DELETE FROM plantillas"))
+        db.commit()
+
+    yield
 def get_auth_header(client, user_data):
     client.post("/api/auth/registro", json=user_data)
     login_response = client.post(
@@ -191,3 +203,55 @@ def test_get_plantillas_del_usuario_vacio(db):
     result = get_plantillas_del_usuario(db, 99999)
     assert isinstance(result, list)
     assert len(result) == 0
+
+def test_delete_plantilla_soft_delete_y_auditoria(db):
+    from app.service.plantilla import create_plantilla, delete_plantilla, get_plantilla
+    from app.schemas.plantilla import PlantillaCreate
+    from app.models.plantilla import Plantilla
+    from app.models.auditoria import Auditoria
+
+    plantilla = create_plantilla(
+        db,
+        PlantillaCreate(
+            nombre="Plantilla Delete Service",
+            slug="plantilla-delete-service"
+        ),
+        user_id=1
+    )
+
+    plantilla_id = plantilla.id
+
+    resultado = delete_plantilla(
+        db,
+        plantilla_id,
+        user_id=1
+    )
+
+    assert resultado is None
+
+    plantilla_eliminada = (
+        db.query(Plantilla)
+        .filter(Plantilla.id == plantilla_id)
+        .first()
+    )
+
+    assert plantilla_eliminada is not None
+    assert plantilla_eliminada.activo is False
+
+    plantilla_visible = get_plantilla(db, plantilla_id)
+    assert plantilla_visible is None
+
+    auditoria = (
+        db.query(Auditoria)
+        .filter(
+            Auditoria.entidad == "plantillas",
+            Auditoria.entidad_id == plantilla_id,
+            Auditoria.accion == "DELETE"
+        )
+        .first()
+    )
+
+    assert auditoria is not None
+    assert auditoria.usuario_id == 1
+    assert auditoria.valores_anteriores is not None
+    assert auditoria.valores_nuevos is None

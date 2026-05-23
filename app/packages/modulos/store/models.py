@@ -1,18 +1,14 @@
-import sys
-sys.path.insert(0, "/app")
-sys.path.insert(0, "/app/packages")
-
 from sqlalchemy import String, Text, Integer, ForeignKey, Numeric, Boolean, Enum as SQLEnum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.core.models.base  import BaseModel, TimestampMixin
+from app.core.models.base import BaseModel, TimestampMixin
 import enum
-
 
 class Categoria(BaseModel, TimestampMixin):
     """Categoría de productos"""
     __tablename__ = "tienda_categorias"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    
     parent_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete="SET NULL"), nullable=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -25,12 +21,12 @@ class Categoria(BaseModel, TimestampMixin):
     hijos: Mapped[list["Categoria"]] = relationship("Categoria", back_populates="parent")
     productos: Mapped[list["Producto"]] = relationship("Producto", back_populates="categoria")
 
-
 class Producto(BaseModel, TimestampMixin):
     """Producto de la tienda"""
     __tablename__ = "tienda_productos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    
     categoria_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete="SET NULL"), nullable=True)
     
     nombre: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -57,7 +53,6 @@ class Producto(BaseModel, TimestampMixin):
     items_pedido: Mapped[list["ItemPedido"]] = relationship("ItemPedido", back_populates="producto")
     items_carrito: Mapped[list["ItemCarrito"]] = relationship("ItemCarrito", back_populates="producto")
 
-
 class PedidoEstado(str, enum.Enum):
     PENDIENTE = "pendiente"
     PROCESANDO = "procesando"
@@ -66,20 +61,18 @@ class PedidoEstado(str, enum.Enum):
     CANCELADO = "cancelado"
     REEMBOLSADO = "reembolsado"
 
-
 class PedidoEstadoPago(str, enum.Enum):
     PENDIENTE = "pendiente"
     PAGADO = "pagado"
     FALLIDO = "fallido"
     REEMBOLSADO = "reembolsado"
 
-
 class Pedido(BaseModel, TimestampMixin):
     """Pedido de un cliente"""
     __tablename__ = "tienda_pedidos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id", ondelete="SET NULL"), nullable=True)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="SET NULL"), nullable=True)
     
     numero_pedido: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     
@@ -106,7 +99,6 @@ class Pedido(BaseModel, TimestampMixin):
     
     items: Mapped[list["ItemPedido"]] = relationship("ItemPedido", back_populates="pedido", cascade="all, delete-orphan")
 
-
 class ItemPedido(BaseModel):
     """Ítem de un pedido"""
     __tablename__ = "tienda_items_pedido"
@@ -123,17 +115,15 @@ class ItemPedido(BaseModel):
     pedido: Mapped["Pedido"] = relationship("Pedido", back_populates="items")
     producto: Mapped["Producto"] = relationship("Producto", back_populates="items_pedido")
 
-
 class Carrito(BaseModel, TimestampMixin):
     """Carrito de compras"""
     __tablename__ = "tienda_carritos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id", ondelete="SET NULL"), nullable=True)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="SET NULL"), nullable=True)
     session_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     
     items: Mapped[list["ItemCarrito"]] = relationship("ItemCarrito", back_populates="carrito", cascade="all, delete-orphan")
-
 
 class ItemCarrito(BaseModel):
     """Ítem en el carrito"""

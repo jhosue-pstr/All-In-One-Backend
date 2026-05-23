@@ -14,14 +14,20 @@ class PostStatus(str, enum.Enum):
 
 class Category(BaseModel, TimestampMixin):
     __tablename__ = "blog_categories"
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
+    
+    # ¡CORREGIDO AQUÍ!
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
 class Post(BaseModel, TimestampMixin):
     __tablename__ = "blog_posts"
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sites.id", ondelete="CASCADE"), nullable=False)
+    
+    # ¡CORREGIDO AQUÍ!
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    
     category_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("blog_categories.id", ondelete="SET NULL"), nullable=True)
     
     title: Mapped[str] = mapped_column(String(255), nullable=False)

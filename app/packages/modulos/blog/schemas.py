@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
-from packages.modulos.blog.models import PostStatus
+from app.packages.modulos.blog.models import PostStatus
 
 # --- SCHEMAS PARA CATEGORÍAS ---
 class CategoryBase(BaseModel):
