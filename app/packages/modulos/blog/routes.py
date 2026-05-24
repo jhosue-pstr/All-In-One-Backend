@@ -95,7 +95,7 @@ ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 @router.post("/{site_id}/upload-image")
 def upload_blog_image(site_id: int, file: UploadFile = File(...)):
     try:
-        upload_path = Path("/app/uploads/blog")
+        upload_path = Path("uploads/blog")
         upload_path.mkdir(parents=True, exist_ok=True)
 
         ext = Path(file.filename).suffix.lower().replace(".", "")
