@@ -76,6 +76,11 @@ media_dir = Path("media")
 media_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory="media"), name="media")
 
+# 4. Static (widget JS, etc.)
+static_dir = Path("static")
+static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 if __name__ == "__main__": # pragma: no cover
     import uvicorn
     # Por defecto es seguro (localhost), pero configurable para entornos virtualizados o producción

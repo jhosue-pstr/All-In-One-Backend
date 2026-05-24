@@ -22,11 +22,16 @@ router = APIRouter(
 ERROR_SITIO_NO_ENCONTRADO = "Sitio no encontrado"
 ERROR_SITIO_DESACTIVADO = "Sitio temporalmente desactivado"
 
+WIDGET_SCRIPT = (
+    '<script src="/static/site-widget.js" defer></script>'
+)
+
 
 def injectar_recursos(
     html: str,
     css: str = "",
-    js: str = ""
+    js: str = "",
+    sitio_id: int | None = None
 ) -> str:
     """
     Inserta dinámicamente CSS y JavaScript
@@ -41,6 +46,10 @@ def injectar_recursos(
             </body>
         </html>
         """
+
+    # Reemplazar placeholder del ID del sitio
+    if sitio_id is not None:
+        html = html.replace("{{SITIO_ID}}", str(sitio_id))
 
     css_style = (
         f"<style>{css}</style>"
@@ -64,15 +73,18 @@ def injectar_recursos(
     else:
         html = f"<head>{css_style}</head>{html}"
 
-    # Insertar JS antes del cierre del body
+    widget = WIDGET_SCRIPT
+
+    # Insertar widget + JS antes del cierre del body
+    scripts = f"{js_script}{widget}"
     if "</body>" in html.lower():
         html = html.replace(
             "</body>",
-            f"{js_script}</body>",
+            f"{scripts}</body>",
             1
         )
     else:
-        html = html + js_script
+        html = html + scripts
 
     return html
 
@@ -141,7 +153,8 @@ def render_sitio(
     html_renderizado = injectar_recursos(
         html,
         css,
-        js
+        js,
+        sitio_id=sitio.id
     )
 
     return HTMLResponse(
