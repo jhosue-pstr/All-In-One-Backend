@@ -74,29 +74,30 @@ chmod +x bin/docker-compose
 
         stage('K6 Load Tests') {
             steps {
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml up -d db backend influxdb grafana'
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml run --rm k6 run /scripts/tests/04_spike_test.js || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.k6.yml run --rm k6 run /scripts/tests/05_soak_test.js || true'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d db backend influxdb grafana'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/04_spike_test.js || true'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/05_soak_test.js || true'
             }
         }
 
         stage('ZAP Security Scan') {
             steps {
-                sh '${DOCKER_COMPOSE} -f docker-compose.zap.yml up -d db backend'
-                sh '${DOCKER_COMPOSE} -f docker-compose.zap.yml run --rm baseline || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.zap.yml build tester'
-                sh '${DOCKER_COMPOSE} -f docker-compose.zap.yml run --rm tester || true'
-                sh '${DOCKER_COMPOSE} -f docker-compose.zap.yml run --rm fullscan || true'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml up -d db backend'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm baseline || true'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml build tester'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm tester || true'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm fullscan || true'
             }
         }
     }
 
     post {
         always {
-            sh 'docker ps -q --filter "network=app-network" | xargs -r docker rm -f 2>/dev/null || true'
+            sh 'docker ps -q --filter "label=com.docker.compose.project=k6" | xargs -r docker rm -f 2>/dev/null || true'
+            sh 'docker ps -q --filter "label=com.docker.compose.project=zap" | xargs -r docker rm -f 2>/dev/null || true'
             sh 'docker network rm app-network 2>/dev/null || true'
             sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db bin/'
             deleteDir()
