@@ -1,0 +1,23 @@
+# ============================================================
+#  Dockerfile.k6
+#  Compila k6 con el plugin xk6-output-influxdb
+#  para enviar métricas a InfluxDB 2.x
+#
+#  FIX: golang:1.22 → golang:1.25 (xk6 v1.4.3 requiere Go 1.25+)
+# ============================================================
+
+# ── Etapa 1: Compilar k6 con el plugin ────────────────────────
+FROM golang:1.25 AS builder
+
+# Instalar xk6 — herramienta para compilar k6 con extensiones
+RUN go install go.k6.io/xk6/cmd/xk6@latest
+
+# Compilar k6 con el output de InfluxDB 2.x
+RUN xk6 build \
+    --with github.com/grafana/xk6-output-influxdb
+
+# ── Etapa 2: Imagen final con k6 compilado ────────────────────
+FROM grafana/k6:latest
+
+# Reemplazar el binario k6 oficial con el compilado con el plugin
+COPY --from=builder /go/k6 /usr/bin/k6

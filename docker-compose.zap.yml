@@ -1,0 +1,134 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jpastor
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_DB: ALL-IN-ONE-DB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jpastor -d ALL-IN-ONE-DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://jpastor:123@db:5432/ALL-IN-ONE-DB
+      SECRET_KEY: default-secret-key
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  baseline:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    user: root
+    volumes:
+      - ./zap/reports:/zap/wrk/:rw
+    environment:
+      TARGET_URL: http://backend:8000
+    command: >
+      zap-baseline.py
+      -t http://backend:8000
+      -r baseline-report.html
+      -J baseline-report.json
+      -x baseline-report.xml
+      -I
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - app-network
+
+  fullscan:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    user: root
+    volumes:
+      - ./zap/reports:/zap/wrk/:rw
+    environment:
+      TARGET_URL: http://backend:8000
+    command: >
+      zap-full-scan.py
+      -t http://backend:8000
+      -r fullscan-report.html
+      -J fullscan-report.json
+      -x fullscan-report.xml
+      -a
+      -I
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - app-network
+
+  apiscan:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    user: root
+    volumes:
+      - ./zap/reports:/zap/wrk/:rw
+    environment:
+      TARGET_URL: http://backend:8000
+    command: >
+      zap-api-scan.py
+      -t http://backend:8000/openapi.json
+      -f openapi
+      -r apiscan-report.html
+      -J apiscan-report.json
+      -I
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - app-network
+
+  viewer:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+    volumes:
+      - ./zap/reports:/usr/share/nginx/html:ro
+      - ./zap/config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  tester:
+    build:
+      context: ./zap
+      dockerfile: Dockerfile
+    user: root
+    volumes:
+      - ./zap/reports:/zap/wrk/:rw
+    environment:
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge
+
+volumes:
+  postgres_data:

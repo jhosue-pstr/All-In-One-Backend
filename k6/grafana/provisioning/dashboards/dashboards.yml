@@ -1,0 +1,18 @@
+# ============================================================
+#  grafana/provisioning/dashboards/dashboards.yml
+#  Le indica a Grafana dónde encontrar los archivos JSON
+#  de los dashboards para cargarlos automáticamente.
+# ============================================================
+
+apiVersion: 1
+
+providers:
+  - name:            SauceDemo K6 Dashboards
+    orgId:           1
+    folder:          "K6 Performance"
+    type:            file
+    disableDeletion: false
+    editable:        true
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards   # Donde montamos los JSON

@@ -1,0 +1,61 @@
+version: "3.8"
+
+x-zap-common: &zap-common
+  image: ghcr.io/zaproxy/zaproxy:stable
+  user: root
+  volumes:
+    - ./reports:/zap/wrk/:rw
+  environment:
+    - TARGET_URL=${TARGET_URL:-https://www.saucedemo.com/v1/}
+
+services:
+
+  baseline:
+    <<: *zap-common
+    command: >
+      zap-baseline.py
+      -t ${TARGET_URL:-https://www.saucedemo.com/v1/}
+      -r baseline-report.html
+      -J baseline-report.json
+      -x baseline-report.xml
+      -I
+
+  fullscan:
+    <<: *zap-common
+    command: >
+      zap-full-scan.py
+      -t ${TARGET_URL:-https://www.saucedemo.com/v1/}
+      -r fullscan-report.html
+      -J fullscan-report.json
+      -x fullscan-report.xml
+      -a
+      -I
+
+  apiscan:
+    <<: *zap-common
+    command: >
+      zap-api-scan.py
+      -t ${TARGET_URL:-https://www.saucedemo.com/v1/}
+      -f openapi
+      -r apiscan-report.html
+      -J apiscan-report.json
+      -I
+
+  viewer:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+    volumes:
+      - ./reports:/usr/share/nginx/html:ro
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: root
+    volumes:
+      - ./reports:/zap/wrk/:rw
+    environment:
+      - PYTHONUNBUFFERED=1
