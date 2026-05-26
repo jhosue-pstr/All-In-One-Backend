@@ -65,12 +65,12 @@ pipeline {
 
         stage('K6 Load Tests') {
             steps {
-                sh 'docker-compose up -d influxdb grafana'
-                sh 'docker-compose run --rm k6 run /scripts/tests/01_smoke_test.js || true'
-                sh 'docker-compose run --rm k6 run /scripts/tests/02_load_test.js || true'
-                sh 'docker-compose run --rm k6 run /scripts/tests/03_stress_test.js || true'
-                sh 'docker-compose run --rm k6 run /scripts/tests/04_spike_test.js || true'
-                sh 'docker-compose run --rm k6 run /scripts/tests/05_soak_test.js || true'
+                sh 'docker compose up -d influxdb grafana'
+                sh 'docker compose run --rm k6 run /scripts/tests/01_smoke_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/02_load_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/03_stress_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/04_spike_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/05_soak_test.js || true'
             }
         }
     }
