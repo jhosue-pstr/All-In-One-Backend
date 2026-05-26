@@ -50,19 +50,8 @@ async def test_blog_flujo_completo():
         assert post_2["slug"] == "mi-primer-post-1"  # ¡Coverage del contador de slugs!
 
         # ---------------------------------------------------------
-        # 4. PROBAR GET POST BY SLUG Y ERRORES 404
+        # 4. PUBLICAR POST 1 (para poder consultarlo por slug)
         # ---------------------------------------------------------
-        resp_get = await ac.get(f"/modules/blog/{SITE_ID}/posts/mi-primer-post")
-        assert resp_get.status_code == 200
-        assert resp_get.json()["id"] == post_1["id"]
-
-        resp_get_404 = await ac.get(f"/modules/blog/{SITE_ID}/posts/slug-inventado")
-        assert resp_get_404.status_code == 404
-
-        # ---------------------------------------------------------
-        # 5. PROBAR ACTUALIZACIÓN (Y LÓGICA DE PUBLICACIÓN)
-        # ---------------------------------------------------------
-        # Actualizar post 1 a PUBLICADO
         resp_upd_1 = await ac.put(
             f"/modules/blog/{SITE_ID}/posts/{post_1['id']}", 
             json={"status": "published"}
@@ -76,12 +65,25 @@ async def test_blog_flujo_completo():
         )
         assert resp_upd_2.status_code == 200
 
+        # ---------------------------------------------------------
+        # 5. PROBAR GET POST BY SLUG Y ERRORES 404
+        # ---------------------------------------------------------
+        resp_get = await ac.get(f"/modules/blog/{SITE_ID}/posts/mi-primer-post")
+        assert resp_get.status_code == 200
+        assert resp_get.json()["id"] == post_1["id"]
+
+        resp_get_404 = await ac.get(f"/modules/blog/{SITE_ID}/posts/slug-inventado")
+        assert resp_get_404.status_code == 404
+
+        # ---------------------------------------------------------
+        # 6. PROBAR ACTUALIZACIÓN
+        # ---------------------------------------------------------
         # Actualizar post inexistente (Coverage 404)
         resp_upd_404 = await ac.put(f"/modules/blog/{SITE_ID}/posts/9999", json={"title": "No"})
         assert resp_upd_404.status_code == 404
 
         # ---------------------------------------------------------
-        # 6. PROBAR LISTADO Y FILTRO `only_published`
+        # 7. PROBAR LISTADO Y FILTRO `only_published`
         # ---------------------------------------------------------
         # Traer todos
         resp_list_all = await ac.get(f"/modules/blog/{SITE_ID}/posts")
@@ -96,7 +98,7 @@ async def test_blog_flujo_completo():
         assert post_2["id"] in publicados
 
         # ---------------------------------------------------------
-        # 7. PROBAR ELIMINACIÓN DE POSTS
+        # 8. PROBAR ELIMINACIÓN DE POSTS
         # ---------------------------------------------------------
         resp_del = await ac.delete(f"/modules/blog/{SITE_ID}/posts/{post_2['id']}")
         assert resp_del.status_code == 200
@@ -105,17 +107,30 @@ async def test_blog_flujo_completo():
         assert resp_del_404.status_code == 404
 
         # ---------------------------------------------------------
-        # 8. PROBAR SUBIDA DE IMÁGENES (UPLOAD SEGURO)
+        # 9. PREPARAR AUTH PARA SUBIDA DE IMÁGENES
+        # ---------------------------------------------------------
+        await ac.post("/api/auth/registro", json={
+            "correo": "blog@test.com", "contrasena": "test123",
+            "nombre": "Blog", "apellido": "Tester"
+        })
+        resp_login = await ac.post("/api/auth/inicio", data={
+            "username": "blog@test.com", "password": "test123"
+        })
+        token = resp_login.json()["access_token"]
+        auth_headers = {"Authorization": f"Bearer {token}"}
+
+        # ---------------------------------------------------------
+        # 10. PROBAR SUBIDA DE IMÁGENES (UPLOAD SEGURO)
         # ---------------------------------------------------------
         # Archivo válido (.png)
         file_valid = {"file": ("imagen.png", io.BytesIO(b"fake image data"), "image/png")}
-        resp_upload_ok = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_valid)
+        resp_upload_ok = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_valid, headers=auth_headers)
         assert resp_upload_ok.status_code == 200
         assert "url" in resp_upload_ok.json()
 
         # Archivo inválido (.txt)
         file_invalid = {"file": ("virus.txt", io.BytesIO(b"hack"), "text/plain")}
-        resp_upload_bad = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_invalid)
+        resp_upload_bad = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_invalid, headers=auth_headers)
         assert resp_upload_bad.status_code == 400
 
 @pytest.mark.asyncio
@@ -145,12 +160,21 @@ async def test_blog_excepciones_y_modulo():
     # 2. CUBRIR routes.py (Líneas 118-119) - Error 500
     # ---------------------------------------------------------
     async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
+        # Registrar e iniciar sesión para obtener token
+        await ac.post("/api/auth/registro", json={
+            "correo": "blog500@test.com", "contrasena": "test123",
+            "nombre": "Blog", "apellido": "Error"
+        })
+        resp_login = await ac.post("/api/auth/inicio", data={
+            "username": "blog500@test.com", "password": "test123"
+        })
+        token = resp_login.json()["access_token"]
+        auth_headers = {"Authorization": f"Bearer {token}"}
+
         file_valid = {"file": ("imagen2.png", io.BytesIO(b"fake data"), "image/png")}
         
-        # Usamos 'patch' para interceptar la función shutil.copyfileobj
-        # y forzar a que la aplicación "crea" que hubo un error del sistema.
-        with patch("app.packages.modulos.blog.routes.shutil.copyfileobj", side_effect=Exception("Disco lleno simulado")):
-            resp_500 = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_valid)
+        with patch("builtins.open", side_effect=OSError("Disco lleno simulado")):
+            resp_500 = await ac.post(f"/modules/blog/{SITE_ID}/upload-image", files=file_valid, headers=auth_headers)
             
             assert resp_500.status_code == 500
             assert "Disco lleno simulado" in resp_500.json()["detail"]

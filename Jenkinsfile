@@ -56,18 +56,21 @@ pipeline {
             }
         }
 
-        // CNES REPORT - Deshabilitado por incompatibilidad con SonarCloud API v8
-        // Revisar: https://github.com/cnescatlab/sonar-cnes-report/releases
-        // stage('Generate CNES Report') {
-        //     steps {
-        //         sh 'curl -sL -o sonar-cnes-report.jar "https://github.com/cnescatlab/sonar-cnes-report/releases/download/5.0.4/sonar-cnes-report-5.0.4.jar"'
-        //         sh 'java -jar sonar-cnes-report.jar -t ${SONAR_TOKEN} -s ${SONAR_HOST_URL} -p ${PROJECT_KEY} -o ./cnes-report'
-        //     }
-        // }
 
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t all-in-one-backend:latest .'
+            }
+        }
+
+        stage('K6 Load Tests') {
+            steps {
+                sh 'docker compose up -d influxdb grafana'
+                sh 'docker compose run --rm k6 run /scripts/tests/01_smoke_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/02_load_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/03_stress_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/04_spike_test.js || true'
+                sh 'docker compose run --rm k6 run /scripts/tests/05_soak_test.js || true'
             }
         }
     }

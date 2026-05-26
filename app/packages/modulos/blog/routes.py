@@ -231,8 +231,11 @@ async def upload_blog_image(
             detail="El archivo está vacío",
         )
 
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
+    try:
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return {
         "url": f"/uploads/blog/{filename}",
