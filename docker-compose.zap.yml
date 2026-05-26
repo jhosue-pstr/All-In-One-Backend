@@ -18,9 +18,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: all-in-one-backend:latest
     ports:
       - "8000:8000"
     environment:
