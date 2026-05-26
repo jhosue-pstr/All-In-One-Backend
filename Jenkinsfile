@@ -65,13 +65,12 @@ pipeline {
 
         stage('K6 Load Tests') {
             steps {
-                sh 'echo "WORKSPACE: ${WORKSPACE}" && ls -la "${WORKSPACE}/docker-compose.yml" || true'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" up -d db backend influxdb grafana'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" run --rm k6 run /scripts/tests/01_smoke_test.js || true'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" run --rm k6 run /scripts/tests/02_load_test.js || true'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" run --rm k6 run /scripts/tests/03_stress_test.js || true'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" run --rm k6 run /scripts/tests/04_spike_test.js || true'
-                sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" run --rm k6 run /scripts/tests/05_soak_test.js || true'
+                sh 'docker compose -f docker-compose.k6.yml up -d db backend influxdb grafana'
+                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
+                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
+                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
+                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/04_spike_test.js || true'
+                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/05_soak_test.js || true'
             }
         }
     }
@@ -80,7 +79,7 @@ pipeline {
         always {
             script {
                 node {
-                    sh 'docker compose -f "${WORKSPACE}/docker-compose.yml" down --remove-orphans || true'
+                    sh 'docker compose -f docker-compose.k6.yml down --remove-orphans || true'
                     sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db'
                     deleteDir()
                 }

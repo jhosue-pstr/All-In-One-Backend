@@ -1,0 +1,95 @@
+{
+  "uid": "all-in-one-k6-influxql",
+  "title": "All-In-One — K6 Performance",
+  "tags": ["k6","performance","all-in-one"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-1h", "to": "now" },
+
+  "panels": [
+    {
+      "id":1, "type":"stat", "title":"Requests por segundo",
+      "gridPos":{"x":0,"y":0,"w":4,"h":4},
+      "options":{"reduceOptions":{"calcs":["lastNotNull"]},"colorMode":"background","graphMode":"area"},
+      "fieldConfig":{"defaults":{"unit":"reqps","thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":50},{"color":"red","value":100}]}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT derivative(mean(\"value\"), 1s) AS \"rps\" FROM \"http_reqs\" WHERE $timeFilter GROUP BY time($__interval) fill(0)"}]
+    },
+    {
+      "id":2, "type":"stat", "title":"Usuarios virtuales (VUs)",
+      "gridPos":{"x":4,"y":0,"w":4,"h":4},
+      "options":{"reduceOptions":{"calcs":["lastNotNull"]},"colorMode":"background","graphMode":"area"},
+      "fieldConfig":{"defaults":{"unit":"short","thresholds":{"mode":"absolute","steps":[{"color":"blue","value":null},{"color":"orange","value":50},{"color":"red","value":100}]}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT last(\"value\") AS \"vus\" FROM \"vus\" WHERE $timeFilter GROUP BY time($__interval) fill(previous)"}]
+    },
+    {
+      "id":3, "type":"stat", "title":"Tasa de errores HTTP",
+      "gridPos":{"x":8,"y":0,"w":4,"h":4},
+      "options":{"reduceOptions":{"calcs":["mean"]},"colorMode":"background"},
+      "fieldConfig":{"defaults":{"unit":"percentunit","thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":0.01},{"color":"red","value":0.05}]}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT mean(\"value\") AS \"error_rate\" FROM \"http_req_failed\" WHERE $timeFilter GROUP BY time($__interval) fill(0)"}]
+    },
+    {
+      "id":4, "type":"stat", "title":"Checks exitosos",
+      "gridPos":{"x":12,"y":0,"w":4,"h":4},
+      "options":{"reduceOptions":{"calcs":["mean"]},"colorMode":"background"},
+      "fieldConfig":{"defaults":{"unit":"percentunit","thresholds":{"mode":"absolute","steps":[{"color":"red","value":null},{"color":"yellow","value":0.90},{"color":"green","value":0.95}]}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT mean(\"value\") AS \"checks\" FROM \"checks\" WHERE $timeFilter GROUP BY time($__interval) fill(0)"}]
+    },
+    {
+      "id":5, "type":"stat", "title":"p95 Tiempo de respuesta",
+      "gridPos":{"x":16,"y":0,"w":4,"h":4},
+      "options":{"reduceOptions":{"calcs":["lastNotNull"]},"colorMode":"background"},
+      "fieldConfig":{"defaults":{"unit":"ms","thresholds":{"mode":"absolute","steps":[{"color":"green","value":null},{"color":"yellow","value":2000},{"color":"red","value":3000}]}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT percentile(\"value\", 95) AS \"p95\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval) fill(null)"}]
+    },
+    {
+      "id":6, "type":"timeseries", "title":"Tiempo de respuesta — p50 / p90 / p95 / p99",
+      "gridPos":{"x":0,"y":4,"w":12,"h":9},
+      "options":{"legend":{"displayMode":"list","placement":"bottom"},"tooltip":{"mode":"multi"}},
+      "fieldConfig":{"defaults":{"unit":"ms","custom":{"lineWidth":2,"fillOpacity":5}}},
+      "targets":[
+        {"refId":"p50","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT percentile(\"value\",50) AS \"p50\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval) fill(null)"},
+        {"refId":"p90","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT percentile(\"value\",90) AS \"p90\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval) fill(null)"},
+        {"refId":"p95","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT percentile(\"value\",95) AS \"p95\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval) fill(null)"},
+        {"refId":"p99","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT percentile(\"value\",99) AS \"p99\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval) fill(null)"}
+      ]
+    },
+    {
+      "id":7, "type":"timeseries", "title":"Usuarios virtuales + Requests/s",
+      "gridPos":{"x":12,"y":4,"w":12,"h":9},
+      "options":{"legend":{"displayMode":"list","placement":"bottom"}},
+      "fieldConfig":{"defaults":{"unit":"short","custom":{"lineWidth":2,"fillOpacity":10}}},
+      "targets":[
+        {"refId":"VUs","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT last(\"value\") AS \"VUs\" FROM \"vus\" WHERE $timeFilter GROUP BY time($__interval) fill(previous)"},
+        {"refId":"RPS","datasource":{"type":"influxdb"},"rawQuery":true,
+          "query":"SELECT derivative(mean(\"value\"),1s) AS \"RPS\" FROM \"http_reqs\" WHERE $timeFilter GROUP BY time($__interval) fill(0)"}
+      ]
+    },
+    {
+      "id":8, "type":"timeseries", "title":"Tasa de errores en el tiempo",
+      "gridPos":{"x":0,"y":13,"w":12,"h":8},
+      "fieldConfig":{"defaults":{"unit":"percentunit","color":{"mode":"fixed","fixedColor":"red"},"custom":{"lineWidth":2,"fillOpacity":20}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT mean(\"value\") AS \"error_rate\" FROM \"http_req_failed\" WHERE $timeFilter GROUP BY time($__interval) fill(0)"}]
+    },
+    {
+      "id":9, "type":"timeseries", "title":"Duracion por endpoint (ms)",
+      "gridPos":{"x":12,"y":13,"w":12,"h":8},
+      "fieldConfig":{"defaults":{"unit":"ms","custom":{"lineWidth":2,"fillOpacity":5}}},
+      "targets":[{"refId":"A","datasource":{"type":"influxdb"},"rawQuery":true,
+        "query":"SELECT mean(\"value\") AS \"duracion\" FROM \"http_req_duration\" WHERE $timeFilter GROUP BY time($__interval), \"name\" fill(null)"}]
+    }
+  ]
+}
