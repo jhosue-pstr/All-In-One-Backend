@@ -64,22 +64,22 @@ pipeline {
 
         stage('K6 Load Tests') {
             steps {
-                sh 'docker compose -f docker-compose.k6.yml up -d db backend influxdb grafana'
-                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
-                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
-                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
-                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/04_spike_test.js || true'
-                sh 'docker compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/05_soak_test.js || true'
+                sh 'docker-compose -f docker-compose.k6.yml up -d db backend influxdb grafana'
+                sh 'docker-compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
+                sh 'docker-compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
+                sh 'docker-compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
+                sh 'docker-compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/04_spike_test.js || true'
+                sh 'docker-compose -f docker-compose.k6.yml run --rm k6 run /scripts/tests/05_soak_test.js || true'
             }
         }
 
         stage('ZAP Security Scan') {
             steps {
-                sh 'docker compose -f docker-compose.zap.yml up -d db backend'
-                sh 'docker compose -f docker-compose.zap.yml run --rm baseline || true'
-                sh 'docker compose -f docker-compose.zap.yml build tester'
-                sh 'docker compose -f docker-compose.zap.yml run --rm tester || true'
-                sh 'docker compose -f docker-compose.zap.yml run --rm fullscan || true'
+                sh 'docker-compose -f docker-compose.zap.yml up -d db backend'
+                sh 'docker-compose -f docker-compose.zap.yml run --rm baseline || true'
+                sh 'docker-compose -f docker-compose.zap.yml build tester'
+                sh 'docker-compose -f docker-compose.zap.yml run --rm tester || true'
+                sh 'docker-compose -f docker-compose.zap.yml run --rm fullscan || true'
             }
         }
     }
@@ -88,8 +88,8 @@ pipeline {
         always {
             script {
                 node {
-                    sh 'docker compose -f docker-compose.k6.yml down --remove-orphans || true'
-                    sh 'docker compose -f docker-compose.zap.yml down --remove-orphans || true'
+                    sh 'docker-compose -f docker-compose.k6.yml down --remove-orphans || true'
+                    sh 'docker-compose -f docker-compose.zap.yml down --remove-orphans || true'
                     sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db'
                     deleteDir()
                 }
