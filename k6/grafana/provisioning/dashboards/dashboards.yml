@@ -15,4 +15,4 @@ providers:
     editable:        true
     updateIntervalSeconds: 10
     options:
-      path: /var/lib/grafana/dashboards   # Donde montamos los JSON
+      path: /etc/grafana/provisioning/dashboards   # JSONs al lado del YAML

@@ -1,3 +1,3 @@
 FROM grafana/grafana:10.2.0
 COPY k6/grafana/provisioning /etc/grafana/provisioning
-COPY k6/grafana/dashboards /var/lib/grafana/dashboards
+COPY k6/grafana/dashboards /etc/grafana/provisioning/dashboards/

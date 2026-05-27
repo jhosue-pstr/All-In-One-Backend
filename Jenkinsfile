@@ -100,7 +100,11 @@ chmod +x bin/docker-compose'''
                                     sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm apiscan || true'
                                 },
                                 tester: {
-                                    sh 'docker run --rm --network app-network -e TARGET_URL=http://all-in-one-backend-1:8000 zap-tester:latest || true'
+                                    sh '''mkdir -p ./zap/reportes
+docker run --network app-network --name zap-tester-payload -e TARGET_URL=http://all-in-one-backend-1:8000 zap-tester:latest || true
+docker cp zap-tester-payload:/zap/wrk/payload-report.html ./zap/reportes/ 2>/dev/null || true
+docker cp zap-tester-payload:/zap/wrk/payload-report.json ./zap/reportes/ 2>/dev/null || true
+docker rm zap-tester-payload 2>/dev/null || true'''
                                 }
                             )
                         }
