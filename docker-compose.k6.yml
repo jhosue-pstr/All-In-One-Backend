@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:10.2.0
+    image: grafana-custom:latest
     container_name: grafana
     ports:
       - "3000:3000"
@@ -32,8 +32,6 @@ services:
       GF_INSTALL_PLUGINS: grafana-clock-panel
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./k6/grafana/provisioning:/etc/grafana/provisioning
-      - ./k6/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       influxdb:
         condition: service_healthy
