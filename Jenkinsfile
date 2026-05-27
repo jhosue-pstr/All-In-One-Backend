@@ -74,7 +74,7 @@ chmod +x bin/docker-compose
 
         stage('K6 Load Tests') {
             steps {
-                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d db backend influxdb grafana'
+                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d influxdb grafana'
                 sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/01_smoke_test.js || true'
                 sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/02_load_test.js || true'
                 sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml run --rm k6 run /scripts/tests/03_stress_test.js || true'
@@ -85,7 +85,7 @@ chmod +x bin/docker-compose
 
         stage('ZAP Security Scan') {
             steps {
-                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml up -d db backend'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml up -d baseline fullscan apiscan viewer tester'
                 sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm baseline || true'
                 sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml build tester'
                 sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm tester || true'

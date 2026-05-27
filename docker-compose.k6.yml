@@ -1,39 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: jpastor
-      POSTGRES_PASSWORD: "123"
-      POSTGRES_DB: ALL-IN-ONE-DB
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jpastor -d ALL-IN-ONE-DB"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    image: all-in-one-backend:latest
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://jpastor:123@db:5432/ALL-IN-ONE-DB
-      SECRET_KEY: default-secret-key
-      ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 30
-    volumes:
-      - .:/app
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - app-network
-
   influxdb:
     image: influxdb:1.8
     container_name: influxdb
@@ -92,14 +57,14 @@ services:
         condition: service_healthy
     environment:
       K6_OUT: influxdb=http://influxdb:8086/k6
+      BASE_URL: http://backend-1:8000
     entrypoint: ["tail", "-f", "/dev/null"]
 
 networks:
   app-network:
     name: app-network
-    driver: bridge
+    external: true
 
 volumes:
-  postgres_data:
   influxdb_data:
   grafana_data:

@@ -1,6 +1,6 @@
 import requests, json, time, datetime, os, sys
 
-TARGET    = "http://backend:8000"
+TARGET    = os.environ.get("TARGET_URL", "http://backend-1:8000")
 LOGIN_URL = TARGET + "/api/auth/inicio"
 REPORT_DIR = "/zap/wrk"
 
