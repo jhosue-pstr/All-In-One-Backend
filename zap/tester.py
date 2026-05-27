@@ -1,6 +1,6 @@
 import requests, json, time, datetime, os, sys
 
-TARGET    = os.environ.get("TARGET_URL", "http://all-in-one-backend-1:8000")
+TARGET    = os.environ.get("TARGET_URL", "http://host.docker.internal:8000")
 LOGIN_URL = TARGET + "/api/auth/inicio"
 REPORT_DIR = "/zap/wrk"
 

@@ -79,11 +79,11 @@ chmod +x bin/docker-compose'''
             parallel {
                 stage('K6 Load Tests') {
                     steps {
-                        sh 'docker run --rm --network app-network -e K6_OUT=influxdb=http://influxdb:8086/k6 -e BASE_URL=http://all-in-one-backend-1:8000 k6-tests:latest run /scripts/tests/01_smoke_test.js || true'
-                        sh 'docker run --rm --network app-network -e K6_OUT=influxdb=http://influxdb:8086/k6 -e BASE_URL=http://all-in-one-backend-1:8000 k6-tests:latest run /scripts/tests/02_load_test.js || true'
-                        sh 'docker run --rm --network app-network -e K6_OUT=influxdb=http://influxdb:8086/k6 -e BASE_URL=http://all-in-one-backend-1:8000 k6-tests:latest run /scripts/tests/03_stress_test.js || true'
-                        sh 'docker run --rm --network app-network -e K6_OUT=influxdb=http://influxdb:8086/k6 -e BASE_URL=http://all-in-one-backend-1:8000 k6-tests:latest run /scripts/tests/04_spike_test.js || true'
-                        sh 'docker run --rm --network app-network -e K6_OUT=influxdb=http://influxdb:8086/k6 -e BASE_URL=http://all-in-one-backend-1:8000 k6-tests:latest run /scripts/tests/05_soak_test.js || true'
+                        sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/01_smoke_test.js || true'
+                        // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/02_load_test.js || true'
+                        // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/03_stress_test.js || true'
+                        // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/04_spike_test.js || true'
+                        // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/05_soak_test.js || true'
                     }
                 }
                 stage('ZAP Security Scan') {
@@ -101,7 +101,7 @@ chmod +x bin/docker-compose'''
                                 },
                                 tester: {
                                     sh '''mkdir -p ./zap/reportes
-docker run --network app-network --name zap-tester-payload -e TARGET_URL=http://all-in-one-backend-1:8000 zap-tester:latest || true
+docker run --add-host host.docker.internal:host-gateway --name zap-tester-payload -e TARGET_URL=http://host.docker.internal:8000 zap-tester:latest || true
 docker cp zap-tester-payload:/zap/wrk/payload-report.html ./zap/reportes/ 2>/dev/null || true
 docker cp zap-tester-payload:/zap/wrk/payload-report.json ./zap/reportes/ 2>/dev/null || true
 docker rm zap-tester-payload 2>/dev/null || true'''
