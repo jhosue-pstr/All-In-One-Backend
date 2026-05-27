@@ -58,7 +58,6 @@ services:
     environment:
       K6_OUT: influxdb=http://influxdb:8086/k6
       BASE_URL: http://backend-1:8000
-    entrypoint: ["tail", "-f", "/dev/null"]
 
 networks:
   app-network:
