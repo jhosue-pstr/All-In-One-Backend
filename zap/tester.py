@@ -167,6 +167,14 @@ if __name__ == "__main__":
         json.dump(RESULTS, f, indent=2, ensure_ascii=False)
 
     counts = {s: sum(1 for r in RESULTS if r["severity"]==s) for s in ["critical","high","medium","info"]}
+
+    extra_path = "/tmp/payload-report.html"
+    try:
+        with open(extra_path, "w", encoding="utf-8") as f:
+            f.write(generate_html(RESULTS))
+    except:
+        pass
+
     print(f"\n{'='*60}")
     print(f"  RESUMEN FINAL")
     print(f"{'='*60}")
@@ -175,6 +183,10 @@ if __name__ == "__main__":
     print(f"  Altos          : {counts['high']}")
     print(f"  Medios         : {counts['medium']}")
     print(f"  Info / OK      : {counts['info']}")
-    print(f"\n  Reporte guardado en: {html_path}")
+    print(f"  Reporte (JSON) : {json.dumps(RESULTS)}")
+    print(f"\n  Busca el HTML en:")
+    print(f"    - /zap/wrk/payload-report.html  (si hay volumen montado)")
+    print(f"    - /tmp/payload-report.html      (fallback)")
+    print(f"    - En Jenkins: zap/reportes/     (via docker cp)")
     print(f"{'='*60}\n")
     sys.stdout.flush()
