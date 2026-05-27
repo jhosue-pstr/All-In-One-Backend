@@ -110,8 +110,8 @@ chmod +x bin/docker-compose'''
 //                         }
 //                     }
 //                 }
-            }
-        }
+//             }
+//         }
     }
 
     post {
