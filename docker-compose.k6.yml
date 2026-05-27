@@ -55,7 +55,7 @@ services:
         condition: service_healthy
     environment:
       K6_OUT: influxdb=http://influxdb:8086/k6
-      BASE_URL: http://backend-1:8000
+      BASE_URL: http://all-in-one-backend-1:8000
 
 networks:
   app-network:

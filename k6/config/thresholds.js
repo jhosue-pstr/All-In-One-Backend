@@ -1,4 +1,4 @@
-export const BASE_URL = __ENV.BASE_URL || "http://backend-1:8000";
+export const BASE_URL = __ENV.BASE_URL || "http://all-in-one-backend-1:8000";
 
 export const THRESHOLDS = {
   http_req_duration: [

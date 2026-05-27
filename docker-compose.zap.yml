@@ -5,10 +5,10 @@ services:
     volumes:
       - ./zap/reports:/zap/wrk/:rw
     environment:
-      TARGET_URL: http://backend-1:8000
+      TARGET_URL: http://all-in-one-backend-1:8000
     command: >
       zap-baseline.py
-      -t http://backend-1:8000
+      -t http://all-in-one-backend-1:8000
       -r baseline-report.html
       -J baseline-report.json
       -x baseline-report.xml
@@ -22,10 +22,10 @@ services:
     volumes:
       - ./zap/reports:/zap/wrk/:rw
     environment:
-      TARGET_URL: http://backend-1:8000
+      TARGET_URL: http://all-in-one-backend-1:8000
     command: >
       zap-full-scan.py
-      -t http://backend-1:8000
+      -t http://all-in-one-backend-1:8000
       -r fullscan-report.html
       -J fullscan-report.json
       -x fullscan-report.xml
@@ -40,10 +40,10 @@ services:
     volumes:
       - ./zap/reports:/zap/wrk/:rw
     environment:
-      TARGET_URL: http://backend-1:8000
+      TARGET_URL: http://all-in-one-backend-1:8000
     command: >
       zap-api-scan.py
-      -t http://backend-1:8000/openapi.json
+      -t http://all-in-one-backend-1:8000/openapi.json
       -f openapi
       -r apiscan-report.html
       -J apiscan-report.json
@@ -58,7 +58,7 @@ services:
       - ./zap/reports:/zap/wrk/:rw
     environment:
       PYTHONUNBUFFERED: 1
-      TARGET_URL: http://backend-1:8000
+      TARGET_URL: http://all-in-one-backend-1:8000
     networks:
       - app-network
 
