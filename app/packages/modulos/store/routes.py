@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from pathlib import Path
+import uuid
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Request, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 from typing import List, Optional
@@ -18,7 +21,10 @@ from app.packages.modulos.store.schemas import (
 from app.packages.modulos.store.services import StoreService
 
 
-router = APIRouter(prefix="/api/v1/sitios/{sitio_id}/tienda", tags=["tienda"])
+UPLOAD_DIR = Path("uploads/tienda")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+router = APIRouter(prefix="/v1/sitios/{sitio_id}/tienda", tags=["tienda"])
 
 # ==================== PRODUCTOS ====================
 
@@ -319,23 +325,25 @@ def actualizar_estado_pedido(
 def obtener_carrito(
     sitio_id: int,
     usuario_id: int = None,
+    session_id: str = None,
     db: Session = Depends(get_db)
 ):
-    """Obtener el carrito actual"""
+    """Obtener el carrito actual (por usuario_id o session_id)"""
     try:
         result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
-        if not usuario_id:
+        if not usuario_id and not session_id:
             return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
         
-        result = db.execute(
-            select(Carrito).where(
-                Carrito.site_id == sitio_id,
-                Carrito.usuario_id == usuario_id
-            )
-        )
+        query = select(Carrito).where(Carrito.site_id == sitio_id)
+        if usuario_id:
+            query = query.where(Carrito.usuario_id == usuario_id)
+        elif session_id:
+            query = query.where(Carrito.session_id == session_id)
+        
+        result = db.execute(query)
         carrito = result.scalar_one_or_none()
         
         if not carrito:
@@ -374,23 +382,23 @@ def obtener_carrito(
         return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
 
 
-@router.post("/carrito/items", response_model=ItemCarritoResponse)
+@router.post("/carrito/items")
 def agregar_al_carrito(
     sitio_id: int,
     item_data: ItemCarritoCreate,
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Agregar un producto al carrito"""
+    """Agregar un producto al carrito (sin login requerido)"""
+    from fastapi.responses import JSONResponse
+    from fastapi.encoders import jsonable_encoder
     try:
         result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
         usuario_id = item_data.usuario_id if hasattr(item_data, 'usuario_id') and item_data.usuario_id else None
-        
-        if not usuario_id:
-            raise HTTPException(status_code=400, detail="Usuario no identificado")
+        session_id = item_data.session_id if hasattr(item_data, 'session_id') and item_data.session_id else None
         
         service = StoreService(db, sitio_id)
         
@@ -399,19 +407,20 @@ def agregar_al_carrito(
                 producto_id=item_data.producto_id,
                 cantidad=item_data.cantidad,
                 usuario_id=usuario_id,
-                session_id=None
+                session_id=session_id
             )
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         
         db.refresh(item, ["producto"])
         
-        return ItemCarritoResponse(
-            id=item.id,
-            producto_id=item.producto_id,
-            cantidad=item.cantidad,
-            producto=ProductoListado.model_validate(item.producto)
-        )
+        return JSONResponse(content=jsonable_encoder({
+            "id": item.id,
+            "producto_id": item.producto_id,
+            "cantidad": item.cantidad,
+            "producto": ProductoListado.model_validate(item.producto).model_dump(),
+            "session_id": nuevo_session_id,
+        }))
     except HTTPException:
         raise
     except Exception as e:
@@ -471,7 +480,6 @@ def eliminar_del_carrito(
 def realizar_checkout(
     sitio_id: int,
     checkout_data: CheckoutRequest,
-    request: Request,
     db: Session = Depends(get_db)
 ):
     """Procesar el checkout y crear un pedido"""
@@ -480,6 +488,10 @@ def realizar_checkout(
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
     usuario_id = checkout_data.usuario_id if hasattr(checkout_data, 'usuario_id') and checkout_data.usuario_id else None
+    session_id = checkout_data.session_id if hasattr(checkout_data, 'session_id') and checkout_data.session_id else None
+    
+    if not usuario_id and not session_id:
+        raise HTTPException(status_code=400, detail="Debes iniciar sesión para finalizar la compra")
     
     service = StoreService(db, sitio_id)
     
@@ -495,3 +507,41 @@ def realizar_checkout(
         pedido=PedidoResponse.model_validate(pedido),
         mensaje="Pedido creado exitosamente"
     )
+
+
+@router.post("/upload-image")
+async def upload_tienda_image(
+    file: UploadFile = File(...),
+):
+    """Subir imagen para productos de tienda"""
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    allowed_extensions = {"jpg", "jpeg", "png", "webp", "gif"}
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Solo se permiten imágenes JPG, PNG, WEBP o GIF")
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="El archivo no tiene nombre válido")
+
+    extension = Path(file.filename).suffix.lower().replace(".", "")
+
+    if extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Extensión de imagen no permitida")
+
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}.{extension}"
+    file_path = UPLOAD_DIR / filename
+
+    content = await file.read()
+
+    if not content:
+        raise HTTPException(status_code=400, detail="El archivo está vacío")
+
+    try:
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"url": f"/uploads/tienda/{filename}"}

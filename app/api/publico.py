@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 
 from sqlalchemy.orm import Session
 
+import re
 from app.db.database import get_db
 from app.service.sitio import get_sitio_por_slug
 
@@ -145,6 +146,22 @@ def render_sitio(
         )
 
     config = sitio.configuracion or {}
+
+    # Check if a specific page is requested via query param
+    page_slug = request.query_params.get("page")
+    pages = config.get("pages", [])
+
+    if page_slug and pages:
+        # Look for a matching page in the pages array
+        for p in pages:
+            name = p.get("name", "")
+            p_slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+            if p_slug == page_slug:
+                html = p.get("html", "")
+                css = p.get("css", "")
+                js = config.get("js", "")
+                html_renderizado = injectar_recursos(html, css, js, sitio_id=sitio.id)
+                return HTMLResponse(content=html_renderizado, status_code=status.HTTP_200_OK)
 
     html = config.get("html", "")
     css = config.get("css", "")

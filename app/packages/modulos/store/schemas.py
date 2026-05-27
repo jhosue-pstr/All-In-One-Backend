@@ -186,6 +186,7 @@ class ItemCarritoCreate(BaseModel):
     producto_id: int
     cantidad: int = 1
     usuario_id: int | None = None
+    session_id: str | None = None
 
 
 class ItemCarritoResponse(BaseModel):
@@ -217,6 +218,7 @@ class CheckoutRequest(BaseModel):
     metodo_pago: str = "efectivo"
     notas: Optional[str] = None
     usuario_id: Optional[int] = None
+    session_id: Optional[str] = None
 
 
 class CheckoutResponse(BaseModel):

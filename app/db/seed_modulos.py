@@ -18,6 +18,26 @@ def seed_modulos():
             },
             "activo": True
         },
+        {
+            "nombre": "Blog",
+            "slug": "blog",
+            "descripcion": "Módulo de blog (artículos, categorías, búsqueda)",
+            "tipo": "content",
+            "configuracion_base": {
+                "enabled": True,
+            },
+            "activo": True
+        },
+        {
+            "nombre": "Tienda",
+            "slug": "tienda",
+            "descripcion": "Módulo de tienda (productos, categorías, carrito, pedidos)",
+            "tipo": "ecommerce",
+            "configuracion_base": {
+                "enabled": True,
+            },
+            "activo": True
+        },
     ]
     
     with Session(engine) as db:

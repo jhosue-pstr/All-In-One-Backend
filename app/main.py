@@ -105,8 +105,8 @@ app.include_router(plantilla_router, prefix="/api")
 # Routers de módulos
 # =========================
 
-app.include_router(blog_router)
-app.include_router(store_router)
+app.include_router(blog_router, prefix="/api")
+app.include_router(store_router, prefix="/api")
 
 
 # =========================
