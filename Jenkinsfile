@@ -57,9 +57,11 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Images') {
             steps {
                 sh 'docker build -t all-in-one-backend:latest .'
+                sh 'docker build -t k6-tests:latest -f Dockerfile.k6-tests .'
+                sh 'docker build -t zap-tester:latest -f zap/Dockerfile ./zap'
             }
         }
 
@@ -75,21 +77,21 @@ chmod +x bin/docker-compose
         stage('K6 Load Tests') {
             steps {
                 sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d influxdb grafana'
-                sh 'docker run --rm --network app-network -v "${WORKSPACE}/k6/tests:/scripts/tests" -v "${WORKSPACE}/k6/config:/scripts/config" -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 grafana/k6:latest run /scripts/tests/01_smoke_test.js || true'
-                sh 'docker run --rm --network app-network -v "${WORKSPACE}/k6/tests:/scripts/tests" -v "${WORKSPACE}/k6/config:/scripts/config" -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 grafana/k6:latest run /scripts/tests/02_load_test.js || true'
-                sh 'docker run --rm --network app-network -v "${WORKSPACE}/k6/tests:/scripts/tests" -v "${WORKSPACE}/k6/config:/scripts/config" -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 grafana/k6:latest run /scripts/tests/03_stress_test.js || true'
-                sh 'docker run --rm --network app-network -v "${WORKSPACE}/k6/tests:/scripts/tests" -v "${WORKSPACE}/k6/config:/scripts/config" -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 grafana/k6:latest run /scripts/tests/04_spike_test.js || true'
-                sh 'docker run --rm --network app-network -v "${WORKSPACE}/k6/tests:/scripts/tests" -v "${WORKSPACE}/k6/config:/scripts/config" -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 grafana/k6:latest run /scripts/tests/05_soak_test.js || true'
+                sh 'docker run --rm --network app-network -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 k6-tests:latest run /scripts/tests/01_smoke_test.js || true'
+                sh 'docker run --rm --network app-network -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 k6-tests:latest run /scripts/tests/02_load_test.js || true'
+                sh 'docker run --rm --network app-network -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 k6-tests:latest run /scripts/tests/03_stress_test.js || true'
+                sh 'docker run --rm --network app-network -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 k6-tests:latest run /scripts/tests/04_spike_test.js || true'
+                sh 'docker run --rm --network app-network -e K6_OUT=http://influxdb:8086/k6 -e BASE_URL=http://backend-1:8000 k6-tests:latest run /scripts/tests/05_soak_test.js || true'
             }
         }
 
         stage('ZAP Security Scan') {
             steps {
-                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml up -d baseline fullscan apiscan viewer tester'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml up -d baseline fullscan apiscan viewer'
                 sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm baseline || true'
-                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml build tester'
-                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm tester || true'
                 sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm fullscan || true'
+                sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm apiscan || true'
+                sh 'docker run --rm --network app-network -e TARGET_URL=http://backend-1:8000 zap-tester:latest || true'
             }
         }
     }

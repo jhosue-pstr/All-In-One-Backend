@@ -63,9 +63,7 @@ services:
     restart: unless-stopped
 
   tester:
-    build:
-      context: ./zap
-      dockerfile: Dockerfile
+    image: zap-tester:latest
     user: root
     volumes:
       - ./zap/reports:/zap/wrk/:rw
