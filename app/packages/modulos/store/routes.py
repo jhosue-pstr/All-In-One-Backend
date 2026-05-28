@@ -24,11 +24,19 @@ from app.packages.modulos.store.services import StoreService
 UPLOAD_DIR = Path("uploads/tienda")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+SITIO_NO_ENCONTRADO = "Sitio no encontrado"
+PRODUCTO_NO_ENCONTRADO = "Producto no encontrado"
+CATEGORIA_NO_ENCONTRADA = "Categoría no encontrada"
+
 router = APIRouter(prefix="/v1/sitios/{sitio_id}/tienda", tags=["tienda"])
 
 # ==================== PRODUCTOS ====================
 
-@router.get("/productos", response_model=dict)
+@router.get(
+    "/productos",
+    response_model=dict,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def listar_productos(
     sitio_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -41,7 +49,7 @@ def listar_productos(
     """Listar productos de la tienda"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     productos, total = service.listar_productos(
@@ -64,7 +72,12 @@ def listar_productos(
     }
 
 
-@router.post("/productos", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/productos",
+    response_model=ProductoResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def crear_producto(
     sitio_id: int,
     producto_data: ProductoCreate,
@@ -73,14 +86,18 @@ def crear_producto(
     """Crear un nuevo producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     producto = service.crear_producto(producto_data)
     return producto
 
 
-@router.get("/productos/{producto_id}", response_model=ProductoResponse)
+@router.get(
+    "/productos/{producto_id}",
+    response_model=ProductoResponse,
+    responses={404: {"description": "Producto o sitio no encontrado"}}
+)
 def obtener_producto(
     sitio_id: int,
     producto_id: int,
@@ -89,18 +106,22 @@ def obtener_producto(
     """Obtener un producto por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     producto = service.get_producto(producto_id)
     
     if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+        raise HTTPException(status_code=404, detail=PRODUCTO_NO_ENCONTRADO)
     
     return producto
 
 
-@router.put("/productos/{producto_id}", response_model=ProductoResponse)
+@router.put(
+    "/productos/{producto_id}",
+    response_model=ProductoResponse,
+    responses={404: {"description": "Producto o sitio no encontrado"}}
+)
 def actualizar_producto(
     sitio_id: int,
     producto_id: int,
@@ -110,18 +131,22 @@ def actualizar_producto(
     """Actualizar un producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     producto = service.actualizar_producto(producto_id, producto_data)
     
     if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+        raise HTTPException(status_code=404, detail=PRODUCTO_NO_ENCONTRADO)
     
     return producto
 
 
-@router.delete("/productos/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/productos/{producto_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Producto o sitio no encontrado"}}
+)
 def eliminar_producto(
     sitio_id: int,
     producto_id: int,
@@ -130,20 +155,24 @@ def eliminar_producto(
     """Eliminar un producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     eliminado = service.eliminar_producto(producto_id)
     
     if not eliminado:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+        raise HTTPException(status_code=404, detail=PRODUCTO_NO_ENCONTRADO)
     
     return None
 
 
 # ==================== CATEGORÍAS ====================
 
-@router.get("/categorias", response_model=dict)
+@router.get(
+    "/categorias",
+    response_model=dict,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def listar_categorias(
     sitio_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -152,7 +181,7 @@ def listar_categorias(
     """Listar categorías de productos"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     categorias = service.listar_categorias(solo_activas=solo_activas)
@@ -163,7 +192,12 @@ def listar_categorias(
     }
 
 
-@router.post("/categorias", response_model=CategoriaResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/categorias",
+    response_model=CategoriaResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def crear_categoria(
     sitio_id: int,
     categoria_data: CategoriaCreate,
@@ -172,14 +206,18 @@ def crear_categoria(
     """Crear una nueva categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     categoria = service.crear_categoria(categoria_data)
     return categoria
 
 
-@router.get("/categorias/{categoria_id}", response_model=CategoriaResponse)
+@router.get(
+    "/categorias/{categoria_id}",
+    response_model=CategoriaResponse,
+    responses={404: {"description": "Categoría o sitio no encontrado"}}
+)
 def obtener_categoria(
     sitio_id: int,
     categoria_id: int,
@@ -188,18 +226,22 @@ def obtener_categoria(
     """Obtener una categoría por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     categoria = service.get_categoria(categoria_id)
     
     if not categoria:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+        raise HTTPException(status_code=404, detail=CATEGORIA_NO_ENCONTRADA)
     
     return categoria
 
 
-@router.put("/categorias/{categoria_id}", response_model=CategoriaResponse)
+@router.put(
+    "/categorias/{categoria_id}",
+    response_model=CategoriaResponse,
+    responses={404: {"description": "Categoría o sitio no encontrado"}}
+)
 def actualizar_categoria(
     sitio_id: int,
     categoria_id: int,
@@ -209,18 +251,22 @@ def actualizar_categoria(
     """Actualizar una categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     categoria = service.actualizar_categoria(categoria_id, categoria_data)
     
     if not categoria:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+        raise HTTPException(status_code=404, detail=CATEGORIA_NO_ENCONTRADA)
     
     return categoria
 
 
-@router.delete("/categorias/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/categorias/{categoria_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Categoría o sitio no encontrado"}}
+)
 def eliminar_categoria(
     sitio_id: int,
     categoria_id: int,
@@ -229,20 +275,24 @@ def eliminar_categoria(
     """Eliminar una categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     eliminado = service.eliminar_categoria(categoria_id)
     
     if not eliminado:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+        raise HTTPException(status_code=404, detail=CATEGORIA_NO_ENCONTRADA)
     
     return None
 
 
 # ==================== PEDIDOS ====================
 
-@router.get("/pedidos", response_model=dict)
+@router.get(
+    "/pedidos",
+    response_model=dict,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def listar_pedidos(
     sitio_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -253,7 +303,7 @@ def listar_pedidos(
     """Listar pedidos del sitio"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     pedidos, total = service.listar_pedidos(
@@ -274,7 +324,11 @@ def listar_pedidos(
     }
 
 
-@router.get("/pedidos/{pedido_id}", response_model=PedidoResponse)
+@router.get(
+    "/pedidos/{pedido_id}",
+    response_model=PedidoResponse,
+    responses={404: {"description": "Pedido o sitio no encontrado"}}
+)
 def obtener_pedido(
     sitio_id: int,
     pedido_id: int,
@@ -283,7 +337,7 @@ def obtener_pedido(
     """Obtener un pedido por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     pedido = service.get_pedido(pedido_id)
@@ -294,7 +348,14 @@ def obtener_pedido(
     return pedido
 
 
-@router.put("/pedidos/{pedido_id}/estado", response_model=PedidoResponse)
+@router.put(
+    "/pedidos/{pedido_id}/estado",
+    response_model=PedidoResponse,
+    responses={
+        400: {"description": "Error en la solicitud"},
+        404: {"description": "Pedido o sitio no encontrado"}
+    }
+)
 def actualizar_estado_pedido(
     sitio_id: int,
     pedido_id: int,
@@ -304,7 +365,7 @@ def actualizar_estado_pedido(
     """Actualizar el estado de un pedido"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     
@@ -321,7 +382,11 @@ def actualizar_estado_pedido(
 
 # ==================== CARRITO ====================
 
-@router.get("/carrito", response_model=CarritoResponse)
+@router.get(
+    "/carrito",
+    response_model=CarritoResponse,
+    responses={404: {"description": "Sitio no encontrado"}}
+)
 def obtener_carrito(
     sitio_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -331,7 +396,7 @@ def obtener_carrito(
     try:
         result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
-            raise HTTPException(status_code=404, detail="Sitio no encontrado")
+            raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
         
         if not usuario_id:
             return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
@@ -385,6 +450,7 @@ def obtener_carrito(
     responses={
         401: {"description": "Debes iniciar sesión para agregar al carrito"},
         400: {"description": "Error en la solicitud"},
+        404: {"description": "Sitio no encontrado"},
         500: {"description": "Error interno"}
     }
 )
@@ -399,7 +465,7 @@ def agregar_al_carrito(
     try:
         result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
-            raise HTTPException(status_code=404, detail="Sitio no encontrado")
+            raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
         
         usuario_id = item_data.usuario_id if hasattr(item_data, 'usuario_id') and item_data.usuario_id else None
         
@@ -432,7 +498,11 @@ def agregar_al_carrito(
         raise HTTPException(status_code=500, detail="Error interno")
 
 
-@router.put("/carrito/items/{item_id}", response_model=ItemCarritoResponse)
+@router.put(
+    "/carrito/items/{item_id}",
+    response_model=ItemCarritoResponse,
+    responses={404: {"description": "Item o sitio no encontrado"}}
+)
 def actualizar_cantidad_carrito(
     sitio_id: int,
     item_id: int,
@@ -442,7 +512,7 @@ def actualizar_cantidad_carrito(
     """Actualizar la cantidad de un item en el carrito"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     item = service.actualizar_cantidad_carrito(item_id, cantidad)
@@ -460,7 +530,11 @@ def actualizar_cantidad_carrito(
     )
 
 
-@router.delete("/carrito/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/carrito/items/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={404: {"description": "Item o sitio no encontrado"}}
+)
 def eliminar_del_carrito(
     sitio_id: int,
     item_id: int,
@@ -469,7 +543,7 @@ def eliminar_del_carrito(
     """Eliminar un item del carrito"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     service = StoreService(db, sitio_id)
     eliminado = service.eliminar_del_carrito(item_id)
@@ -485,6 +559,7 @@ def eliminar_del_carrito(
     response_model=CheckoutResponse,
     responses={
         400: {"description": "Debes iniciar sesión o error en la solicitud"},
+        404: {"description": "Sitio no encontrado"},
         500: {"description": "Error interno al procesar el pedido"}
     }
 )
@@ -496,7 +571,7 @@ def realizar_checkout(
     """Procesar el checkout y crear un pedido"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+        raise HTTPException(status_code=404, detail=SITIO_NO_ENCONTRADO)
     
     usuario_id = checkout_data.usuario_id if hasattr(checkout_data, 'usuario_id') and checkout_data.usuario_id else None
     

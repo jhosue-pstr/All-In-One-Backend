@@ -3,13 +3,16 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.models.base import BaseModel, TimestampMixin
 import enum
 
+FK_SITIOS = "sitios.id"
+ON_DELETE_SET_NULL = "SET NULL"
+
 class Categoria(BaseModel, TimestampMixin):
     """Categoría de productos"""
     __tablename__ = "tienda_categorias"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIOS, ondelete="CASCADE"), nullable=False)
     
-    parent_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete="SET NULL"), nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete=ON_DELETE_SET_NULL), nullable=True)
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
     descripcion: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -25,9 +28,9 @@ class Producto(BaseModel, TimestampMixin):
     """Producto de la tienda"""
     __tablename__ = "tienda_productos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIOS, ondelete="CASCADE"), nullable=False)
     
-    categoria_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete="SET NULL"), nullable=True)
+    categoria_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("tienda_categorias.id", ondelete=ON_DELETE_SET_NULL), nullable=True)
     
     nombre: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -71,8 +74,8 @@ class Pedido(BaseModel, TimestampMixin):
     """Pedido de un cliente"""
     __tablename__ = "tienda_pedidos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="SET NULL"), nullable=True)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIOS, ondelete="CASCADE"), nullable=False)
+    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete=ON_DELETE_SET_NULL), nullable=True)
     
     numero_pedido: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     
@@ -104,7 +107,7 @@ class ItemPedido(BaseModel):
     __tablename__ = "tienda_items_pedido"
 
     pedido_id: Mapped[int] = mapped_column(Integer, ForeignKey("tienda_pedidos.id", ondelete="CASCADE"), nullable=False)
-    producto_id: Mapped[int] = mapped_column(Integer, ForeignKey("tienda_productos.id", ondelete="SET NULL"), nullable=True)
+    producto_id: Mapped[int] = mapped_column(Integer, ForeignKey("tienda_productos.id", ondelete=ON_DELETE_SET_NULL), nullable=True)
     
     nombre_producto: Mapped[str] = mapped_column(String(255), nullable=False)
     sku_producto: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -119,7 +122,7 @@ class Carrito(BaseModel, TimestampMixin):
     """Carrito de compras"""
     __tablename__ = "tienda_carritos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIOS, ondelete="CASCADE"), nullable=False)
     usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="CASCADE"), nullable=False)
     
     items: Mapped[list["ItemCarrito"]] = relationship("ItemCarrito", back_populates="carrito", cascade="all, delete-orphan")
