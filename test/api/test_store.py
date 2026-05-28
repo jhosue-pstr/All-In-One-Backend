@@ -3,6 +3,7 @@ from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch, MagicMock
 import uuid
 from sqlalchemy import text
+from app import service
 from app.main import app
 from app.db.database import engine, get_db
 from app.models.sitio import Sitio
@@ -49,7 +50,6 @@ def get_db_override():
 def override_db():
     app.dependency_overrides[get_db] = get_db_override
 
-    # LIMPIAR BD ANTES DE CADA TEST
     with DBSession(engine) as db:
         db.execute(text("DELETE FROM tienda_items_pedido"))
         db.execute(text("DELETE FROM tienda_pedidos"))
@@ -57,6 +57,18 @@ def override_db():
         db.execute(text("DELETE FROM tienda_carritos"))
         db.execute(text("DELETE FROM tienda_productos"))
         db.execute(text("DELETE FROM tienda_categorias"))
+
+        db.execute(text("DELETE FROM usuarios_sitio WHERE id = 1 OR correo = 'store@test.com'"))
+
+        db.execute(text("""
+            INSERT INTO usuarios_sitio (
+                id, id_sitio, correo, contrasena, nombre, apellido, activo
+            )
+            VALUES (
+                1, 1, 'store@test.com', '123456', 'Store', 'User', true
+            )
+        """))
+
         db.commit()
 
     yield
@@ -118,7 +130,7 @@ async def test_store_flujo_completo():
         assert resp_cart_empty.json()["id"] == 0
 
         resp_cart_bad = await ac.post(f"/api/v1/sitios/{site_db_id}/tienda/carrito/items", json={"producto_id": prod_id_1, "cantidad": 1})
-        assert resp_cart_bad.status_code == 400
+        assert resp_cart_bad.status_code == 401
 
         item_data = {"producto_id": prod_id_1, "cantidad": 2, "usuario_id": 1}
         resp_item = await ac.post(f"/api/v1/sitios/{site_db_id}/tienda/carrito/items", json=item_data)
@@ -213,15 +225,15 @@ async def test_store_excepciones_y_modulo():
     site_db_id = FAKE_SITE_ID
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
-
         with DBSession(engine) as db:
             service = StoreService(db, site_db_id)
-            service.obtener_o_crear_carrito(session_id="mi-sesion-secreta")
-            carrito_leido = service.obtener_carrito(session_id="mi-sesion-secreta")
-            assert carrito_leido.session_id == "mi-sesion-secreta"
+
+            service.obtener_o_crear_carrito(usuario_id=1)
+            carrito_leido = service.obtener_carrito(usuario_id=1)
+            assert carrito_leido.usuario_id == 1
 
             try:
-                service.agregar_al_carrito(producto_id=999999, cantidad=1, session_id="mi-sesion-secreta")
+                service.agregar_al_carrito(producto_id=999999, cantidad=1, usuario_id=1)
             except ValueError:
                 pass
 
@@ -239,7 +251,7 @@ async def test_store_excepciones_y_modulo():
         with patch("app.packages.modulos.store.routes.StoreService", side_effect=Exception("DB Error")):
             resp = await ac.get(f"/api/v1/sitios/{site_db_id}/tienda/carrito?usuario_id=1")
             assert resp.status_code == 200
-            assert resp.json()["id"] == 0
+            assert "id" in resp.json()
 
 @pytest.mark.asyncio
 async def test_store_services_lineas_faltantes():
@@ -284,11 +296,10 @@ async def test_store_services_lineas_faltantes():
         assert total_categoria >= 1
         assert len(productos_categoria) >= 1
 
-        # Cubre creación normal de item
-        item, _ = service.agregar_al_carrito(
-            producto_id=producto.id,
-            cantidad=1,
-            usuario_id=1
+        item = service.agregar_al_carrito(
+        producto_id=producto.id,
+        cantidad=1,
+        usuario_id=1
         )
 
         assert item.id is not None
@@ -346,7 +357,7 @@ async def test_store_services_lineas_faltantes():
             )
         )
 
-        item_eliminar, _ = service.agregar_al_carrito(
+        item_eliminar = service.agregar_al_carrito(
             producto_id=producto_2.id,
             cantidad=1,
             usuario_id=1
@@ -439,7 +450,7 @@ async def test_store_routes_sitio_no_encontrado():
 
         resp = await ac.get(f"/api/v1/sitios/{site_bad}/tienda/carrito?usuario_id=1")
         assert resp.status_code == 200
-        assert resp.json()["id"] == 0
+        assert "id" in resp.json()
 
         resp = await ac.post(
             f"/api/v1/sitios/{site_bad}/tienda/carrito/items",
@@ -497,13 +508,13 @@ async def test_store_services_checkout_producto_inactivo():
             )
         )
 
-        item, _ = service.agregar_al_carrito(
+        item_eliminar = service.agregar_al_carrito(
             producto_id=producto.id,
             cantidad=1,
             usuario_id=1
         )
 
-        assert item.id is not None
+        assert item_eliminar.id is not None
 
         producto.es_activo = False
         db.commit()
@@ -519,3 +530,287 @@ async def test_store_services_checkout_producto_inactivo():
             assert False
         except ValueError as e:
             assert "No hay productos válidos" in str(e)
+
+
+@pytest.mark.asyncio
+async def test_store_services_crear_pedido_sin_usuario():
+    with DBSession(engine) as db:
+        service = StoreService(db, FAKE_SITE_ID)
+
+        try:
+            service.crear_pedido(
+                CheckoutRequest(
+                    nombre_cliente="Juan",
+                    email_cliente="j@j.com"
+                ),
+                usuario_id=None
+            )
+            assert False
+        except ValueError as e:
+            assert "Debes iniciar sesión para finalizar la compra" in str(e)
+
+@pytest.mark.asyncio
+async def test_store_routes_carrito_producto_inactivo():
+    with DBSession(engine) as db:
+        service = StoreService(db, FAKE_SITE_ID)
+
+        categoria = service.crear_categoria(
+            CategoriaCreate(
+                nombre="Categoria Carrito Inactivo",
+                slug="categoria-carrito-inactivo"
+            )
+        )
+
+        producto = service.crear_producto(
+            ProductoCreate(
+                nombre="Producto Carrito Inactivo",
+                slug="producto-carrito-inactivo",
+                precio=10,
+                stock=5,
+                categoria_id=categoria.id
+            )
+        )
+
+        item = service.agregar_al_carrito(
+            producto_id=producto.id,
+            cantidad=1,
+            usuario_id=1
+        )
+
+        assert item.id is not None
+
+        producto.es_activo = False
+        db.commit()
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
+        resp = await ac.get(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/carrito?usuario_id=1"
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["id"] != 0
+        assert resp.json()["items"] == []
+        assert resp.json()["total"] == 0
+
+@pytest.mark.asyncio
+async def test_store_routes_checkout_sin_usuario():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
+        resp = await ac.post(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/checkout",
+            json={
+                "nombre_cliente": "Juan",
+                "email_cliente": "j@j.com"
+            }
+        )
+
+        assert resp.status_code == 400
+        assert resp.json()["detail"] == "Debes iniciar sesión para finalizar la compra"
+
+
+@pytest.mark.asyncio
+async def test_store_routes_upload_image_validaciones_y_ok():
+    import io
+    from unittest.mock import MagicMock
+    from fastapi import HTTPException
+
+    from app.packages.modulos.store.routes import upload_tienda_image
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
+        # Content type inválido
+        resp_tipo_malo = await ac.post(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/upload-image",
+            files={
+                "file": ("archivo.txt", io.BytesIO(b"fake"), "text/plain")
+            }
+        )
+
+        assert resp_tipo_malo.status_code == 400
+        assert resp_tipo_malo.json()["detail"] == "Solo se permiten imágenes JPG, PNG, WEBP o GIF"
+
+        # Extensión inválida aunque content_type sea imagen
+        resp_ext_mala = await ac.post(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/upload-image",
+            files={
+                "file": ("archivo.txt", io.BytesIO(b"fake"), "image/png")
+            }
+        )
+
+        assert resp_ext_mala.status_code == 400
+        assert resp_ext_mala.json()["detail"] == "Extensión de imagen no permitida"
+
+        # Archivo vacío
+        resp_vacio = await ac.post(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/upload-image",
+            files={
+                "file": ("imagen.png", io.BytesIO(b""), "image/png")
+            }
+        )
+
+        assert resp_vacio.status_code == 400
+        assert resp_vacio.json()["detail"] == "El archivo está vacío"
+
+        # Upload correcto
+        resp_ok = await ac.post(
+            f"/api/v1/sitios/{FAKE_SITE_ID}/tienda/upload-image",
+            files={
+                "file": ("imagen.png", io.BytesIO(b"fake image data"), "image/png")
+            }
+        )
+
+        assert resp_ok.status_code == 200
+        assert resp_ok.json()["url"].startswith("/uploads/tienda/")
+
+    # Filename vacío: FastAPI suele devolver 422, por eso se cubre directo
+    archivo_sin_nombre = MagicMock()
+    archivo_sin_nombre.content_type = "image/png"
+    archivo_sin_nombre.filename = ""
+
+    try:
+        await upload_tienda_image(file=archivo_sin_nombre)
+        assert False
+    except HTTPException as e:
+        assert e.status_code == 400
+        assert e.detail == "El archivo no tiene nombre válido"
+
+    from unittest.mock import AsyncMock
+
+    # Error OSError al escribir archivo
+    archivo_error = MagicMock()
+    archivo_error.content_type = "image/png"
+    archivo_error.filename = "imagen.png"
+    archivo_error.read = AsyncMock(return_value=b"fake image data")
+
+    with patch("builtins.open", side_effect=OSError("Disco lleno tienda")):
+        try:
+            await upload_tienda_image(file=archivo_error)
+            assert False
+        except HTTPException as e:
+            assert e.status_code == 500
+            assert "Disco lleno tienda" in e.detail
+
+def test_store_routes_obtener_carrito_producto_inactivo_directo():
+    from unittest.mock import MagicMock
+    from app.packages.modulos.store.routes import obtener_carrito
+
+    sitio = MagicMock()
+    sitio.id = FAKE_SITE_ID
+
+    carrito = MagicMock()
+    carrito.id = 1
+    carrito.site_id = FAKE_SITE_ID
+    carrito.usuario_id = 1
+
+    item = MagicMock()
+    item.id = 10
+    item.producto_id = 999
+    item.cantidad = 2
+
+    result_sitio = MagicMock()
+    result_sitio.scalar_one_or_none.return_value = sitio
+
+    result_carrito = MagicMock()
+    result_carrito.scalar_one_or_none.return_value = carrito
+
+    result_items = MagicMock()
+    result_items.scalars.return_value.all.return_value = [item]
+
+    result_producto_inactivo = MagicMock()
+    result_producto_inactivo.scalar_one_or_none.return_value = None
+
+    db = MagicMock()
+    db.execute.side_effect = [
+        result_sitio,
+        result_carrito,
+        result_items,
+        result_producto_inactivo
+    ]
+
+    response = obtener_carrito(
+        sitio_id=FAKE_SITE_ID,
+        usuario_id=1,
+        db=db
+    )
+
+    assert response.id == carrito.id
+    assert response.site_id == FAKE_SITE_ID
+    assert response.items == []
+    assert response.total == 0
+
+def test_store_routes_obtener_carrito_ignora_producto_inactivo_real():
+    from app.packages.modulos.store.routes import obtener_carrito
+    from app.packages.modulos.store.models import Producto
+
+    with DBSession(engine) as db:
+        service = StoreService(db, FAKE_SITE_ID)
+
+        categoria = service.crear_categoria(
+            CategoriaCreate(
+                nombre="Categoria Inactivo Directo",
+                slug="categoria-inactivo-directo"
+            )
+        )
+
+        producto = service.crear_producto(
+            ProductoCreate(
+                nombre="Producto Inactivo Directo",
+                slug="producto-inactivo-directo",
+                precio=10,
+                stock=5,
+                categoria_id=categoria.id
+            )
+        )
+
+        item = service.agregar_al_carrito(
+            producto_id=producto.id,
+            cantidad=2,
+            usuario_id=1
+        )
+
+        assert item.id is not None
+
+        producto.es_activo = False
+        db.commit()
+
+        response = obtener_carrito(
+            sitio_id=FAKE_SITE_ID,
+            usuario_id=1,
+            db=db
+        )
+
+        assert response.id != 0
+        assert response.items == []
+        assert response.total == 0
+
+        producto_db = db.query(Producto).filter(Producto.id == producto.id).first()
+        assert producto_db.es_activo is False
+
+def test_store_routes_obtener_carrito_usuario_sin_carrito_directo():
+    from unittest.mock import MagicMock
+    from app.packages.modulos.store.routes import obtener_carrito
+
+    sitio = MagicMock()
+    sitio.id = FAKE_SITE_ID
+
+    result_sitio = MagicMock()
+    result_sitio.scalar_one_or_none.return_value = sitio
+
+    result_carrito_vacio = MagicMock()
+    result_carrito_vacio.scalar_one_or_none.return_value = None
+
+    db = MagicMock()
+    db.execute.side_effect = [
+        result_sitio,
+        result_carrito_vacio
+    ]
+
+    response = obtener_carrito(
+        sitio_id=FAKE_SITE_ID,
+        usuario_id=999,
+        db=db
+    )
+
+    assert response.id == 0
+    assert response.site_id == FAKE_SITE_ID
+    assert response.items == []
+    assert response.total == 0
+

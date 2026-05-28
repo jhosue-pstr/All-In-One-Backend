@@ -336,3 +336,55 @@ def test_logout_success(client, db):
 def test_logout_sin_token(client):
     response = client.post("/api/site-auth/logout")
     assert response.status_code == 401
+
+def test_listar_usuarios_sitio_admin(client, db):
+    from app.models.usuario import User
+    from app.api.auth import get_password_hash
+    from app.packages.modulos.SiteAuth.models.sitio_usuario import UsuarioSitio
+
+    admin = User(
+        correo="admin-siteauth-list@test.com",
+        contrasena=get_password_hash("123456"),
+        nombre="Admin",
+        apellido="SiteAuth"
+    )
+    db.add(admin)
+    db.commit()
+    db.refresh(admin)
+
+    usuario_sitio = UsuarioSitio(
+        id_sitio=1,
+        correo="cliente-siteauth-list@test.com",
+        contrasena="123456",
+        nombre="Cliente",
+        apellido="SiteAuth",
+        activo=True
+    )
+    db.add(usuario_sitio)
+    db.commit()
+
+    login = client.post(
+        "/api/auth/inicio",
+        data={
+            "username": "admin-siteauth-list@test.com",
+            "password": "123456"
+        }
+    )
+
+    assert login.status_code == 200
+
+    token = login.json()["access_token"]
+
+    response = client.get(
+        "/api/site-auth/usuarios?site_id=1",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert any(
+        usuario["correo"] == "cliente-siteauth-list@test.com"
+        for usuario in response.json()
+    )

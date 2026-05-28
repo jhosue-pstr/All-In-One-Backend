@@ -153,3 +153,38 @@ def test_check_system(client: TestClient):
         "blog": "ok",
         "tienda": "ok"
     }
+
+def test_render_sitio_con_pagina_interna(client, db):
+    from app.models.sitio import Sitio
+
+    sitio = Sitio(
+        nombre="Sitio Con Paginas",
+        slug="sitio-con-paginas",
+        activo=True,
+        configuracion={
+            "html": "<html><body><h1>Home</h1></body></html>",
+            "css": "body { background: white; }",
+            "js": "console.log('general');",
+            "pages": [
+                {
+                    "name": "Sobre Nosotros",
+                    "html": "<html><body><h1>Pagina Sobre Nosotros</h1><span>{{SITIO_ID}}</span></body></html>",
+                    "css": "h1 { color: blue; }"
+                }
+            ]
+        }
+    )
+
+    db.add(sitio)
+    db.commit()
+    db.refresh(sitio)
+
+    response = client.get("/sitio-con-paginas?page=sobre-nosotros")
+
+    assert response.status_code == 200
+    assert "Pagina Sobre Nosotros" in response.text
+    assert "Home" not in response.text
+    assert "<style>h1 { color: blue; }</style>" in response.text
+    assert "<script>console.log('general');</script>" in response.text
+    assert "/static/site-widget.js" in response.text
+    assert str(sitio.id) in response.text

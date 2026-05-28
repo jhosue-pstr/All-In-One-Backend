@@ -339,3 +339,48 @@ def test_verify_token_usuario_sitio_sin_sub(db):
     result = services.verify_token_usuario_sitio(db, token_sin_sub)
     
     assert result is None
+
+def test_update_usuario_sitio_campos_envio_y_listado(db):
+    from app.packages.modulos.SiteAuth.services.usuario_sitio import (
+        create_usuario_sitio,
+        update_usuario_sitio,
+        list_usuarios_by_site
+    )
+    from app.packages.modulos.SiteAuth.schemas.sitio_usuario import (
+        UsuarioSitioCreate,
+        UsuarioSitioUpdate
+    )
+
+    usuario = create_usuario_sitio(
+        db,
+        UsuarioSitioCreate(
+            id_sitio=1,
+            correo="usuario-envio@test.com",
+            contrasena="123456",
+            nombre="Usuario",
+            apellido="Envio"
+        )
+    )
+
+    usuario_actualizado = update_usuario_sitio(
+        db,
+        usuario,
+        UsuarioSitioUpdate(
+            telefono="999888777",
+            direccion_envio="Av. Principal 123",
+            ciudad="Lima",
+            pais="Perú",
+            codigo_postal="15001"
+        )
+    )
+
+    assert usuario_actualizado.telefono == "999888777"
+    assert usuario_actualizado.direccion_envio == "Av. Principal 123"
+    assert usuario_actualizado.ciudad == "Lima"
+    assert usuario_actualizado.pais == "Perú"
+    assert usuario_actualizado.codigo_postal == "15001"
+
+    usuarios = list_usuarios_by_site(db, 1)
+
+    assert isinstance(usuarios, list)
+    assert any(u.correo == "usuario-envio@test.com" for u in usuarios)

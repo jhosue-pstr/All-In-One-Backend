@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+import uuid
 from sqlalchemy.orm import joinedload, Session
 from sqlalchemy import select, func, delete
 from app.packages.modulos.store.models import (
