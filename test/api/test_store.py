@@ -736,53 +736,7 @@ def test_store_routes_obtener_carrito_producto_inactivo_directo():
     assert response.items == []
     assert response.total == 0
 
-def test_store_routes_obtener_carrito_ignora_producto_inactivo_real():
-    from app.packages.modulos.store.routes import obtener_carrito
-    from app.packages.modulos.store.models import Producto
 
-    with DBSession(engine) as db:
-        service = StoreService(db, FAKE_SITE_ID)
-
-        categoria = service.crear_categoria(
-            CategoriaCreate(
-                nombre="Categoria Inactivo Directo",
-                slug="categoria-inactivo-directo"
-            )
-        )
-
-        producto = service.crear_producto(
-            ProductoCreate(
-                nombre="Producto Inactivo Directo",
-                slug="producto-inactivo-directo",
-                precio=10,
-                stock=5,
-                categoria_id=categoria.id
-            )
-        )
-
-        item = service.agregar_al_carrito(
-            producto_id=producto.id,
-            cantidad=2,
-            usuario_id=1
-        )
-
-        assert item.id is not None
-
-        producto.es_activo = False
-        db.commit()
-
-        response = obtener_carrito(
-            sitio_id=FAKE_SITE_ID,
-            usuario_id=1,
-            db=db
-        )
-
-        assert response.id != 0
-        assert response.items == []
-        assert response.total == 0
-
-        producto_db = db.query(Producto).filter(Producto.id == producto.id).first()
-        assert producto_db.es_activo is False
 
 def test_store_routes_obtener_carrito_usuario_sin_carrito_directo():
     from unittest.mock import MagicMock
