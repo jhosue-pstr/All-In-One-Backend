@@ -90,7 +90,7 @@ def injectar_recursos(
     return html
 
 @router.get("/check-system")
-async def check_system(db: Session = Depends(get_db)):
+async def check_system(db: Annotated[Session, Depends(get_db)]):
     return {"blog": "ok", "tienda": "ok"}
 
 @router.get(

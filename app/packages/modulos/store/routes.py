@@ -1,9 +1,10 @@
+import anyio
 from pathlib import Path
 import uuid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from app.db.database import get_db
 from app.models.sitio import Sitio
@@ -35,7 +36,7 @@ def listar_productos(
     por_pagina: int = 20,
     solo_activos: bool = True,
     featured: bool = False,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar productos de la tienda"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -67,7 +68,7 @@ def listar_productos(
 def crear_producto(
     sitio_id: int,
     producto_data: ProductoCreate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Crear un nuevo producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -83,7 +84,7 @@ def crear_producto(
 def obtener_producto(
     sitio_id: int,
     producto_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Obtener un producto por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -104,7 +105,7 @@ def actualizar_producto(
     sitio_id: int,
     producto_id: int,
     producto_data: ProductoUpdate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar un producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -124,7 +125,7 @@ def actualizar_producto(
 def eliminar_producto(
     sitio_id: int,
     producto_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Eliminar un producto"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -146,7 +147,7 @@ def eliminar_producto(
 def listar_categorias(
     sitio_id: int,
     solo_activas: bool = True,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar categorías de productos"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -166,7 +167,7 @@ def listar_categorias(
 def crear_categoria(
     sitio_id: int,
     categoria_data: CategoriaCreate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Crear una nueva categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -182,7 +183,7 @@ def crear_categoria(
 def obtener_categoria(
     sitio_id: int,
     categoria_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Obtener una categoría por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -203,7 +204,7 @@ def actualizar_categoria(
     sitio_id: int,
     categoria_id: int,
     categoria_data: CategoriaUpdate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar una categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -223,7 +224,7 @@ def actualizar_categoria(
 def eliminar_categoria(
     sitio_id: int,
     categoria_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Eliminar una categoría"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -247,7 +248,7 @@ def listar_pedidos(
     estado: Optional[str] = None,
     pagina: int = 1,
     por_pagina: int = 20,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar pedidos del sitio"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -277,7 +278,7 @@ def listar_pedidos(
 def obtener_pedido(
     sitio_id: int,
     pedido_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Obtener un pedido por ID"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -298,7 +299,7 @@ def actualizar_estado_pedido(
     sitio_id: int,
     pedido_id: int,
     data: PedidoUpdateEstado,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar el estado de un pedido"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -324,7 +325,7 @@ def actualizar_estado_pedido(
 def obtener_carrito(
     sitio_id: int,
     usuario_id: int = None,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Obtener el carrito actual (por usuario_id)"""
     try:
@@ -379,11 +380,18 @@ def obtener_carrito(
         return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
 
 
-@router.post("/carrito/items")
+@router.post(
+    "/carrito/items",
+    responses={
+        401: {"description": "Debes iniciar sesión para agregar al carrito"},
+        400: {"description": "Error en la solicitud"},
+        500: {"description": "Error interno"}
+    }
+)
 def agregar_al_carrito(
     sitio_id: int,
     item_data: ItemCarritoCreate,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Agregar un producto al carrito"""
     from fastapi.responses import JSONResponse
@@ -429,7 +437,7 @@ def actualizar_cantidad_carrito(
     sitio_id: int,
     item_id: int,
     cantidad: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Actualizar la cantidad de un item en el carrito"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -456,7 +464,7 @@ def actualizar_cantidad_carrito(
 def eliminar_del_carrito(
     sitio_id: int,
     item_id: int,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Eliminar un item del carrito"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -472,11 +480,18 @@ def eliminar_del_carrito(
     return None
 
 
-@router.post("/checkout", response_model=CheckoutResponse)
+@router.post(
+    "/checkout",
+    response_model=CheckoutResponse,
+    responses={
+        400: {"description": "Debes iniciar sesión o error en la solicitud"},
+        500: {"description": "Error interno al procesar el pedido"}
+    }
+)
 def realizar_checkout(
     sitio_id: int,
     checkout_data: CheckoutRequest,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Procesar el checkout y crear un pedido"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -504,9 +519,15 @@ def realizar_checkout(
     )
 
 
-@router.post("/upload-image")
+@router.post(
+    "/upload-image",
+    responses={
+        400: {"description": "Error en la solicitud (tipo/archivo inválido)"},
+        500: {"description": "Error interno al guardar la imagen"}
+    }
+)
 async def upload_tienda_image(
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File()],
 ):
     """Subir imagen para productos de tienda"""
     allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
@@ -534,8 +555,8 @@ async def upload_tienda_image(
         raise HTTPException(status_code=400, detail="El archivo está vacío")
 
     try:
-        with open(file_path, "wb") as buffer:
-            buffer.write(content)
+        async with await anyio.open_file(file_path, "wb") as buffer:
+            await buffer.write(content)
     except OSError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

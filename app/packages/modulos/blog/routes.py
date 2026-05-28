@@ -1,10 +1,9 @@
-from datetime import datetime
+import anyio
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import Annotated, List
 import uuid
 
-from datetime import datetime
-from sqlalchemy import and_, or_, select
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
@@ -18,6 +17,9 @@ from app.packages.modulos.blog.models import Post
 UPLOAD_DIR = Path("uploads/blog")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+ARTICULO_NO_ENCONTRADO = "Artículo no encontrado"
+ARTICULO_NO_DISPONIBLE = "Artículo no disponible"
+
 router = APIRouter(prefix="/modules/blog", tags=["Module: Blog"])
 
 
@@ -27,7 +29,7 @@ def is_post_publicly_available(post: Post) -> bool:
     - está publicado
     - o está programado y su fecha ya llegó
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     if post.status == "published":
         return True
@@ -42,7 +44,7 @@ def is_post_publicly_available(post: Post) -> bool:
 def create_category_route(
     site_id: int,
     category_in: schemas.CategoryCreate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     return services.create_category(db, site_id, category_in)
 
@@ -51,7 +53,7 @@ def create_category_route(
 def create_post_route(
     site_id: int,
     post_in: schemas.PostCreate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     return services.create_post(db, site_id, post_in)
 
@@ -60,12 +62,12 @@ def create_post_route(
 def list_posts_route(
     site_id: int,
     only_published: bool = False,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     if not only_published:
         return services.get_posts_by_site(db, site_id, only_published=False)
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     result = db.execute(
         select(Post)
@@ -86,11 +88,17 @@ def list_posts_route(
     return result.scalars().all()
 
 
-@router.get("/{site_id}/posts/{slug}", response_model=schemas.PostResponse)
+@router.get(
+    "/{site_id}/posts/{slug}",
+    response_model=schemas.PostResponse,
+    responses={
+        404: {"description": "Artículo no encontrado o no disponible"}
+    }
+)
 def get_post_route(
     site_id: int,
     slug: str,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Este endpoint lo usa el sitio publicado para ver el detalle del post.
@@ -106,20 +114,26 @@ def get_post_route(
     post = result.scalar_one_or_none()
 
     if not post:
-        raise HTTPException(status_code=404, detail="Artículo no encontrado")
+        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
 
     if not is_post_publicly_available(post):
-        raise HTTPException(status_code=404, detail="Artículo no disponible")
+        raise HTTPException(status_code=404, detail=ARTICULO_NO_DISPONIBLE)
 
     return post
 
 
-@router.put("/{site_id}/posts/{post_id}", response_model=schemas.PostResponse)
+@router.put(
+    "/{site_id}/posts/{post_id}",
+    response_model=schemas.PostResponse,
+    responses={
+        404: {"description": "Artículo no encontrado"}
+    }
+)
 def update_post_route(
     site_id: int,
     post_id: int,
     post_in: schemas.PostUpdate,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     result = db.execute(
         select(Post).where(
@@ -131,7 +145,7 @@ def update_post_route(
     post = result.scalar_one_or_none()
 
     if not post:
-        raise HTTPException(status_code=404, detail="Artículo no encontrado")
+        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
 
     update_data = post_in.model_dump(exclude_unset=True)
 
@@ -144,11 +158,16 @@ def update_post_route(
     return post
 
 
-@router.delete("/{site_id}/posts/{post_id}")
+@router.delete(
+    "/{site_id}/posts/{post_id}",
+    responses={
+        404: {"description": "Artículo no encontrado"}
+    }
+)
 def delete_post_route(
     site_id: int,
     post_id: int,
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     result = db.execute(
         select(Post).where(
@@ -160,7 +179,7 @@ def delete_post_route(
     post = result.scalar_one_or_none()
 
     if not post:
-        raise HTTPException(status_code=404, detail="Artículo no encontrado")
+        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
 
     db.delete(post)
     db.commit()
@@ -168,12 +187,18 @@ def delete_post_route(
     return {"message": "Artículo eliminado correctamente"}
 
 
-@router.post("/{site_id}/upload-image")
+@router.post(
+    "/{site_id}/upload-image",
+    responses={
+        400: {"description": "Error en la solicitud (tipo/archivo inválido)"},
+        500: {"description": "Error interno al guardar la imagen"}
+    }
+)
 async def upload_blog_image(
     site_id: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    file: Annotated[UploadFile, File()],
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     """
     Guarda la imagen físicamente en:
@@ -232,8 +257,8 @@ async def upload_blog_image(
         )
 
     try:
-        with open(file_path, "wb") as buffer:
-            buffer.write(content)
+        async with await anyio.open_file(file_path, "wb") as buffer:
+            await buffer.write(content)
     except OSError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -317,7 +317,7 @@ def update_me(
 def listar_usuarios_sitio(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    site_id: int = Query(...),
+    site_id: Annotated[int, Query()],
 ):
     """Lista todos los usuarios registrados en un sitio específico (admin)"""
     return services.list_usuarios_by_site(db, site_id)
