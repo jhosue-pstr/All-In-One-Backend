@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import joinedload, Session
@@ -141,14 +140,16 @@ class StoreService:
         short_uuid = str(uuid.uuid4())[:8].upper()
         return f"PED-{timestamp}-{short_uuid}"
 
-    def crear_pedido(self, data: CheckoutRequest, usuario_id: int | None = None) -> Pedido:
-        query = select(Carrito).where(
-            Carrito.site_id == self.sitio_id
+    def crear_pedido(self, data: CheckoutRequest, usuario_id: int) -> Pedido:
+        if not usuario_id:
+            raise ValueError("Debes iniciar sesión para finalizar la compra")
+
+        result = self.db.execute(
+            select(Carrito).where(
+                Carrito.site_id == self.sitio_id,
+                Carrito.usuario_id == usuario_id
+            )
         )
-        if usuario_id:
-            query = query.where(Carrito.usuario_id == usuario_id)
-        
-        result = self.db.execute(query)
         carrito = result.scalar_one_or_none()
         
         items_carrito = []
@@ -281,21 +282,19 @@ class StoreService:
 
     # ==================== CARRITO ====================
 
-    def obtener_o_crear_carrito(self, usuario_id: int | None = None, session_id: str | None = None) -> Carrito:
-        query = select(Carrito).where(Carrito.site_id == self.sitio_id)
-        if usuario_id:
-            query = query.where(Carrito.usuario_id == usuario_id)
-        elif session_id:
-            query = query.where(Carrito.session_id == session_id)
-        
-        result = self.db.execute(query)
+    def obtener_o_crear_carrito(self, usuario_id: int) -> Carrito:
+        result = self.db.execute(
+            select(Carrito).where(
+                Carrito.site_id == self.sitio_id,
+                Carrito.usuario_id == usuario_id
+            )
+        )
         carrito = result.scalar_one_or_none()
         
         if not carrito:
             carrito = Carrito(
                 site_id=self.sitio_id,
-                usuario_id=usuario_id,
-                session_id=session_id
+                usuario_id=usuario_id
             )
             self.db.add(carrito)
             self.db.commit()
@@ -307,15 +306,10 @@ class StoreService:
         self,
         producto_id: int,
         cantidad: int = 1,
-        usuario_id: int | None = None,
-        session_id: str | None = None
+        usuario_id: int | None = None
     ):
-        nuevo_session_id = None
-
-        # Solo crear session_id si NO hay usuario logueado
-        if not usuario_id and not session_id:
-            session_id = str(uuid.uuid4())
-            nuevo_session_id = session_id
+        if not usuario_id:
+            raise ValueError("Debes iniciar sesión para agregar al carrito")
 
         producto = self.get_producto(producto_id)
 
@@ -325,7 +319,7 @@ class StoreService:
         if producto.stock is not None and producto.stock < cantidad:
             raise ValueError("Stock insuficiente")
         
-        carrito = self.obtener_o_crear_carrito(usuario_id, session_id)
+        carrito = self.obtener_o_crear_carrito(usuario_id)
         
         result = self.db.execute(
             select(ItemCarrito).where(
@@ -353,7 +347,7 @@ class StoreService:
             self.db.refresh(item)
             item_existente = item
         
-        return item_existente, nuevo_session_id
+        return item_existente
 
     def actualizar_cantidad_carrito(self, item_id: int, cantidad: int) -> ItemCarrito | None:
         result = self.db.execute(
@@ -385,13 +379,12 @@ class StoreService:
         self.db.commit()
         return True
 
-    def obtener_carrito(self, usuario_id: int | None = None, session_id: str | None = None) -> Carrito | None:
-        query = select(Carrito).where(Carrito.site_id == self.sitio_id)
-        if usuario_id:
-            query = query.where(Carrito.usuario_id == usuario_id)
-        elif session_id:
-            query = query.where(Carrito.session_id == session_id)
-        
-        result = self.db.execute(query)
+    def obtener_carrito(self, usuario_id: int) -> Carrito | None:
+        result = self.db.execute(
+            select(Carrito).where(
+                Carrito.site_id == self.sitio_id,
+                Carrito.usuario_id == usuario_id
+            )
+        )
         return result.scalar_one_or_none()
 

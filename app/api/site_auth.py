@@ -36,6 +36,8 @@ from app.packages.modulos.SiteAuth.schemas.sitio_usuario import (
 from app.packages.modulos.SiteAuth.services import usuario_sitio as services
 
 from app.core.config import settings
+from app.api.auth import get_current_user
+from app.models.usuario import User
 
 router = APIRouter(
     prefix="/site-auth",
@@ -305,6 +307,20 @@ def update_me(
         current_user,
         user_data
     )
+
+
+@router.get(
+    "/usuarios",
+    response_model=list[UsuarioSitioResponse],
+    summary="Listar usuarios de un sitio",
+)
+def listar_usuarios_sitio(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    site_id: int = Query(...),
+):
+    """Lista todos los usuarios registrados en un sitio específico (admin)"""
+    return services.list_usuarios_by_site(db, site_id)
 
 
 @router.get(

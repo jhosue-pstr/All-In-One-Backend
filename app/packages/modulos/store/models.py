@@ -120,8 +120,7 @@ class Carrito(BaseModel, TimestampMixin):
     __tablename__ = "tienda_carritos"
 
     site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
-    usuario_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="SET NULL"), nullable=True)
-    session_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios_sitio.id", ondelete="CASCADE"), nullable=False)
     
     items: Mapped[list["ItemCarrito"]] = relationship("ItemCarrito", back_populates="carrito", cascade="all, delete-orphan")
 

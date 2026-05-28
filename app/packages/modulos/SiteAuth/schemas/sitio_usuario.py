@@ -7,6 +7,11 @@ class UsuarioSitioBase(BaseModel):
     nombre: str
     apellido: str
     id_sitio: int
+    telefono: str | None = None
+    direccion_envio: str | None = None
+    ciudad: str | None = None
+    pais: str | None = None
+    codigo_postal: str | None = None
 
 
 class UsuarioSitioCreate(UsuarioSitioBase):
@@ -17,6 +22,11 @@ class UsuarioSitioUpdate(BaseModel):
     nombre: str | None = None
     apellido: str | None = None
     contrasena: str | None = None
+    telefono: str | None = None
+    direccion_envio: str | None = None
+    ciudad: str | None = None
+    pais: str | None = None
+    codigo_postal: str | None = None
 
 
 class UsuarioSitioLogin(BaseModel):
@@ -27,6 +37,7 @@ class UsuarioSitioLogin(BaseModel):
 
 class UsuarioSitioResponse(UsuarioSitioBase):
     id: int
+    activo: bool = True
     created_at: datetime
     updated_at: datetime
 

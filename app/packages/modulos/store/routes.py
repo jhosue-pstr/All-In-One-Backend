@@ -1,9 +1,8 @@
 from pathlib import Path
-import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Request, Response
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select
 from typing import List, Optional
 
 from app.db.database import get_db
@@ -325,25 +324,23 @@ def actualizar_estado_pedido(
 def obtener_carrito(
     sitio_id: int,
     usuario_id: int = None,
-    session_id: str = None,
     db: Session = Depends(get_db)
 ):
-    """Obtener el carrito actual (por usuario_id o session_id)"""
+    """Obtener el carrito actual (por usuario_id)"""
     try:
         result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
         if not result.scalar_one_or_none():
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
-        if not usuario_id and not session_id:
+        if not usuario_id:
             return CarritoResponse(id=0, site_id=sitio_id, items=[], total=0)
         
-        query = select(Carrito).where(Carrito.site_id == sitio_id)
-        if usuario_id:
-            query = query.where(Carrito.usuario_id == usuario_id)
-        elif session_id:
-            query = query.where(Carrito.session_id == session_id)
-        
-        result = db.execute(query)
+        result = db.execute(
+            select(Carrito).where(
+                Carrito.site_id == sitio_id,
+                Carrito.usuario_id == usuario_id
+            )
+        )
         carrito = result.scalar_one_or_none()
         
         if not carrito:
@@ -386,10 +383,9 @@ def obtener_carrito(
 def agregar_al_carrito(
     sitio_id: int,
     item_data: ItemCarritoCreate,
-    request: Request,
     db: Session = Depends(get_db)
 ):
-    """Agregar un producto al carrito (sin login requerido)"""
+    """Agregar un producto al carrito"""
     from fastapi.responses import JSONResponse
     from fastapi.encoders import jsonable_encoder
     try:
@@ -398,16 +394,17 @@ def agregar_al_carrito(
             raise HTTPException(status_code=404, detail="Sitio no encontrado")
         
         usuario_id = item_data.usuario_id if hasattr(item_data, 'usuario_id') and item_data.usuario_id else None
-        session_id = item_data.session_id if hasattr(item_data, 'session_id') and item_data.session_id else None
+        
+        if not usuario_id:
+            raise HTTPException(status_code=401, detail="Debes iniciar sesión para agregar al carrito")
         
         service = StoreService(db, sitio_id)
         
         try:
-            item, nuevo_session_id = service.agregar_al_carrito(
+            item = service.agregar_al_carrito(
                 producto_id=item_data.producto_id,
                 cantidad=item_data.cantidad,
-                usuario_id=usuario_id,
-                session_id=session_id
+                usuario_id=usuario_id
             )
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -419,7 +416,6 @@ def agregar_al_carrito(
             "producto_id": item.producto_id,
             "cantidad": item.cantidad,
             "producto": ProductoListado.model_validate(item.producto).model_dump(),
-            "session_id": nuevo_session_id,
         }))
     except HTTPException:
         raise
@@ -488,9 +484,8 @@ def realizar_checkout(
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
     usuario_id = checkout_data.usuario_id if hasattr(checkout_data, 'usuario_id') and checkout_data.usuario_id else None
-    session_id = checkout_data.session_id if hasattr(checkout_data, 'session_id') and checkout_data.session_id else None
     
-    if not usuario_id and not session_id:
+    if not usuario_id:
         raise HTTPException(status_code=400, detail="Debes iniciar sesión para finalizar la compra")
     
     service = StoreService(db, sitio_id)

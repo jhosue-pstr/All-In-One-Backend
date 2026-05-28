@@ -17,6 +17,9 @@ class UsuarioSitio(BaseModel, TimestampMixin):
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     apellido: Mapped[str] = mapped_column(String(100), nullable=False)
     token: Mapped[str | None] = mapped_column(Text, nullable=True)
-    
-    # NUEVA COLUMNA PARA EL SOFT DELETE
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    telefono: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    direccion_envio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ciudad: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    pais: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    codigo_postal: Mapped[str | None] = mapped_column(String(20), nullable=True)
