@@ -31,12 +31,12 @@ router = APIRouter(prefix="/v1/sitios/{sitio_id}/tienda", tags=["tienda"])
 @router.get("/productos", response_model=dict)
 def listar_productos(
     sitio_id: int,
+    db: Annotated[Session, Depends(get_db)],
     categoria_id: Optional[int] = None,
     pagina: int = 1,
     por_pagina: int = 20,
     solo_activos: bool = True,
     featured: bool = False,
-    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar productos de la tienda"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -146,8 +146,8 @@ def eliminar_producto(
 @router.get("/categorias", response_model=dict)
 def listar_categorias(
     sitio_id: int,
+    db: Annotated[Session, Depends(get_db)],
     solo_activas: bool = True,
-    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar categorías de productos"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -245,10 +245,10 @@ def eliminar_categoria(
 @router.get("/pedidos", response_model=dict)
 def listar_pedidos(
     sitio_id: int,
+    db: Annotated[Session, Depends(get_db)],
     estado: Optional[str] = None,
     pagina: int = 1,
     por_pagina: int = 20,
-    db: Annotated[Session, Depends(get_db)]
 ):
     """Listar pedidos del sitio"""
     result = db.execute(select(Sitio).where(Sitio.id == sitio_id))
@@ -324,8 +324,8 @@ def actualizar_estado_pedido(
 @router.get("/carrito", response_model=CarritoResponse)
 def obtener_carrito(
     sitio_id: int,
+    db: Annotated[Session, Depends(get_db)],
     usuario_id: int = None,
-    db: Annotated[Session, Depends(get_db)]
 ):
     """Obtener el carrito actual (por usuario_id)"""
     try:

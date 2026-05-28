@@ -61,8 +61,8 @@ def create_post_route(
 @router.get("/{site_id}/posts", response_model=List[schemas.PostResponse])
 def list_posts_route(
     site_id: int,
+    db: Annotated[Session, Depends(get_db)],
     only_published: bool = False,
-    db: Annotated[Session, Depends(get_db)]
 ):
     if not only_published:
         return services.get_posts_by_site(db, site_id, only_published=False)
