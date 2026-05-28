@@ -249,20 +249,20 @@ def test_blog_services_publicados_y_slug_no_encontrado():
 
 
 def test_blog_routes_is_post_publicly_available():
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
     from unittest.mock import MagicMock
 
     from app.packages.modulos.blog.routes import is_post_publicly_available
 
     post_scheduled_pasado = MagicMock()
     post_scheduled_pasado.status = "scheduled"
-    post_scheduled_pasado.published_at = datetime.utcnow() - timedelta(days=1)
+    post_scheduled_pasado.published_at = datetime.now(timezone.utc) - timedelta(days=1)
 
     assert is_post_publicly_available(post_scheduled_pasado) is True
 
     post_scheduled_futuro = MagicMock()
     post_scheduled_futuro.status = "scheduled"
-    post_scheduled_futuro.published_at = datetime.utcnow() + timedelta(days=1)
+    post_scheduled_futuro.published_at = datetime.now(timezone.utc) + timedelta(days=1)
 
     assert is_post_publicly_available(post_scheduled_futuro) is False
 
