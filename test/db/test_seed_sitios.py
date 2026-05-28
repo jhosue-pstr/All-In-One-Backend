@@ -6,7 +6,7 @@ from app.packages.modulos.store.models import Producto, Categoria as TiendaCateg
 
 
 def test_seed_sitios_creates_sitios(db):
-    seed_sitios()
+    seed_sitios(db)
 
     sitios = db.query(Sitio).all()
     assert len(sitios) == 3
@@ -18,17 +18,17 @@ def test_seed_sitios_creates_sitios(db):
 
 
 def test_seed_sitios_idempotent(db):
-    seed_sitios()
+    seed_sitios(db)
     count_after_first = db.query(Sitio).count()
 
-    seed_sitios()
+    seed_sitios(db)
     count_after_second = db.query(Sitio).count()
 
     assert count_after_first == count_after_second == 3
 
 
 def test_seed_sitios_abogado_data(db):
-    seed_sitios()
+    seed_sitios(db)
 
     sitio = db.query(Sitio).filter(Sitio.slug == "abogado-demo").first()
     assert sitio is not None
@@ -38,7 +38,7 @@ def test_seed_sitios_abogado_data(db):
 
 
 def test_seed_sitios_blog_creates_categories_and_posts(db):
-    seed_sitios()
+    seed_sitios(db)
 
     sitio = db.query(Sitio).filter(Sitio.slug == "blog-demo").first()
     assert sitio is not None
@@ -57,18 +57,18 @@ def test_seed_sitios_blog_creates_categories_and_posts(db):
 
 
 def test_seed_sitios_blog_idempotent_skips(db):
-    seed_sitios()
+    seed_sitios(db)
     sitio = db.query(Sitio).filter(Sitio.slug == "blog-demo").first()
     posts_after_first = db.query(Post).filter(Post.site_id == sitio.id).count()
 
-    seed_sitios()
+    seed_sitios(db)
     posts_after_second = db.query(Post).filter(Post.site_id == sitio.id).count()
 
     assert posts_after_first == posts_after_second == 4
 
 
 def test_seed_sitios_tienda_creates_categories_and_products(db):
-    seed_sitios()
+    seed_sitios(db)
 
     sitio = db.query(Sitio).filter(Sitio.slug == "tienda-demo").first()
     assert sitio is not None
@@ -86,11 +86,11 @@ def test_seed_sitios_tienda_creates_categories_and_products(db):
 
 
 def test_seed_sitios_tienda_idempotent_skips(db):
-    seed_sitios()
+    seed_sitios(db)
     sitio = db.query(Sitio).filter(Sitio.slug == "tienda-demo").first()
     productos_after_first = db.query(Producto).filter(Producto.site_id == sitio.id).count()
 
-    seed_sitios()
+    seed_sitios(db)
     productos_after_second = db.query(Producto).filter(Producto.site_id == sitio.id).count()
 
     assert productos_after_first == productos_after_second == 6

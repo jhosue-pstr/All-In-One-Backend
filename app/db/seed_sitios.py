@@ -8,7 +8,7 @@ from app.packages.modulos.blog.models import Category as BlogCategory, Post, Pos
 from app.packages.modulos.store.models import Categoria as TiendaCategoria, Producto
 
 
-def seed_sitios():
+def seed_sitios(db: Session | None = None):
     sitios_data = [
         {
             "slug": "abogado-demo",
@@ -45,27 +45,34 @@ def seed_sitios():
         },
     ]
 
-    with Session(engine) as db:
-        for i, data in enumerate(sitios_data):
-            slug = data["slug"]
-            existente = db.query(Sitio).filter(Sitio.slug == slug).first()
-            if existente:
-                print(f"  Sitio '{slug}' ya existe (id={existente.id})")
-                sitio_id = existente.id
-            else:
-                sitio = Sitio(**data)
-                db.add(sitio)
-                db.flush()
-                sitio_id = sitio.id
-                print(f"  Sitio '{slug}' creado (id={sitio_id})")
+    should_close = False
+    if db is None:
+        db = Session(engine)
+        should_close = True
 
-            # Seed data according to site type
-            if slug == "blog-demo":
-                seed_blog_data(db, sitio_id)
-            elif slug == "tienda-demo":
-                seed_tienda_data(db, sitio_id)
+    for i, data in enumerate(sitios_data):
+        slug = data["slug"]
+        existente = db.query(Sitio).filter(Sitio.slug == slug).first()
+        if existente:
+            print(f"  Sitio '{slug}' ya existe (id={existente.id})")
+            sitio_id = existente.id
+        else:
+            sitio = Sitio(**data)
+            db.add(sitio)
+            db.flush()
+            sitio_id = sitio.id
+            print(f"  Sitio '{slug}' creado (id={sitio_id})")
 
-        db.commit()
+        # Seed data according to site type
+        if slug == "blog-demo":
+            seed_blog_data(db, sitio_id)
+        elif slug == "tienda-demo":
+            seed_tienda_data(db, sitio_id)
+
+    db.commit()
+
+    if should_close:
+        db.close()
     print(" Seed de sitios completado")
 
 

@@ -4,7 +4,7 @@ from app.models.plantilla import Plantilla
 
 
 def test_seed_plantillas_creates_plantillas(db):
-    seed_plantillas()
+    seed_plantillas(db)
 
     plantillas = db.query(Plantilla).all()
     assert len(plantillas) == 3
@@ -16,17 +16,17 @@ def test_seed_plantillas_creates_plantillas(db):
 
 
 def test_seed_plantillas_idempotent(db):
-    seed_plantillas()
+    seed_plantillas(db)
     count_after_first = db.query(Plantilla).count()
 
-    seed_plantillas()
+    seed_plantillas(db)
     count_after_second = db.query(Plantilla).count()
 
     assert count_after_first == count_after_second == 3
 
 
 def test_seed_plantillas_plantilla_abogado_data(db):
-    seed_plantillas()
+    seed_plantillas(db)
 
     abogado = db.query(Plantilla).filter(Plantilla.slug == "plantilla-abogado").first()
     assert abogado is not None
@@ -38,7 +38,7 @@ def test_seed_plantillas_plantilla_abogado_data(db):
 
 
 def test_seed_plantillas_plantilla_blog_data(db):
-    seed_plantillas()
+    seed_plantillas(db)
 
     blog = db.query(Plantilla).filter(Plantilla.slug == "plantilla-blog").first()
     assert blog is not None
@@ -47,7 +47,7 @@ def test_seed_plantillas_plantilla_blog_data(db):
 
 
 def test_seed_plantillas_plantilla_tienda_data(db):
-    seed_plantillas()
+    seed_plantillas(db)
 
     tienda = db.query(Plantilla).filter(Plantilla.slug == "plantilla-tienda").first()
     assert tienda is not None

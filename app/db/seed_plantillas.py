@@ -6,7 +6,7 @@ from app.models.plantilla import Plantilla, Visibilidad
 from app.db.seed_sitios import ABOGADO_HTML, BLOG_HTML, TIENDA_HTML
 
 
-def seed_plantillas():
+def seed_plantillas(db: Session | None = None):
     plantillas_data = [
         {
             "slug": "plantilla-abogado",
@@ -49,19 +49,26 @@ def seed_plantillas():
         },
     ]
 
-    with Session(engine) as db:
-        for data in plantillas_data:
-            slug = data["slug"]
-            existente = db.query(Plantilla).filter(Plantilla.slug == slug).first()
-            if existente:
-                print(f"  Plantilla '{slug}' ya existe (id={existente.id})")
-            else:
-                plantilla = Plantilla(**data)
-                db.add(plantilla)
-                db.flush()
-                print(f"  Plantilla '{slug}' creada (id={plantilla.id})")
+    should_close = False
+    if db is None:
+        db = Session(engine)
+        should_close = True
 
-        db.commit()
+    for data in plantillas_data:
+        slug = data["slug"]
+        existente = db.query(Plantilla).filter(Plantilla.slug == slug).first()
+        if existente:
+            print(f"  Plantilla '{slug}' ya existe (id={existente.id})")
+        else:
+            plantilla = Plantilla(**data)
+            db.add(plantilla)
+            db.flush()
+            print(f"  Plantilla '{slug}' creada (id={plantilla.id})")
+
+    db.commit()
+
+    if should_close:
+        db.close()
     print(" Seed de plantillas completado")
 
 
