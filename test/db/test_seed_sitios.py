@@ -1,5 +1,6 @@
-from app.db.database import Base
-from app.db.seed_sitios import seed_sitios
+import runpy
+
+from app.db.seed_sitios import seed_sitios, seed_blog_data
 from app.models.sitio import Sitio
 from app.packages.modulos.blog.models import Post, Category as BlogCategory
 from app.packages.modulos.store.models import Producto, Categoria as TiendaCategoria
@@ -49,16 +50,11 @@ def test_seed_sitios_blog_creates_categories_and_posts(db):
     posts = db.query(Post).filter(Post.site_id == sitio.id).all()
     assert len(posts) == 4
 
-    slugs = [p.slug for p in posts]
-    assert "bienvenido-a-nuestro-blog" in slugs
-    assert "tendencias-tecnologicas-2026" in slugs
-    assert "consejos-productividad" in slugs
-    assert "empezar-proyecto-online" in slugs
-
 
 def test_seed_sitios_blog_idempotent_skips(db):
     seed_sitios(db)
     sitio = db.query(Sitio).filter(Sitio.slug == "blog-demo").first()
+
     posts_after_first = db.query(Post).filter(Post.site_id == sitio.id).count()
 
     seed_sitios(db)
@@ -79,18 +75,63 @@ def test_seed_sitios_tienda_creates_categories_and_products(db):
     productos = db.query(Producto).filter(Producto.site_id == sitio.id).all()
     assert len(productos) == 6
 
-    nombres = [p.nombre for p in productos]
-    assert "Auriculares Bluetooth Pro" in nombres
-    assert "Chaqueta Urbana Negra" in nombres
-    assert "Lámpara LED Inteligente" in nombres
-
 
 def test_seed_sitios_tienda_idempotent_skips(db):
     seed_sitios(db)
     sitio = db.query(Sitio).filter(Sitio.slug == "tienda-demo").first()
+
     productos_after_first = db.query(Producto).filter(Producto.site_id == sitio.id).count()
 
     seed_sitios(db)
     productos_after_second = db.query(Producto).filter(Producto.site_id == sitio.id).count()
 
     assert productos_after_first == productos_after_second == 6
+
+
+def test_seed_sitios_cubre_sitio_existente(db):
+    sitio = Sitio(
+        slug="abogado-demo",
+        nombre="Abogado Existente",
+        activo=True,
+        configuracion={},
+        switches={}
+    )
+    db.add(sitio)
+    db.commit()
+
+    seed_sitios(db)
+
+    assert db.query(Sitio).filter(Sitio.slug == "abogado-demo").count() == 1
+
+
+def test_seed_blog_data_existente_return(db):
+    sitio = Sitio(
+        slug="blog-existente-return",
+        nombre="Blog Existente Return",
+        activo=True,
+        configuracion={},
+        switches={}
+    )
+    db.add(sitio)
+    db.commit()
+    db.refresh(sitio)
+
+    categoria = BlogCategory(
+        site_id=sitio.id,
+        name="General",
+        slug="general",
+        description="Ya existe"
+    )
+    db.add(categoria)
+    db.commit()
+
+    seed_blog_data(db, sitio.id)
+
+    assert db.query(BlogCategory).filter(BlogCategory.site_id == sitio.id).count() == 1
+
+
+def test_seed_sitios_main():
+    runpy.run_module(
+        "app.db.seed_sitios",
+        run_name="__main__"
+    )

@@ -1,6 +1,6 @@
-from app.db.database import Base
 from app.db.seed_plantillas import seed_plantillas
 from app.models.plantilla import Plantilla
+import runpy
 
 
 def test_seed_plantillas_creates_plantillas(db):
@@ -28,7 +28,10 @@ def test_seed_plantillas_idempotent(db):
 def test_seed_plantillas_plantilla_abogado_data(db):
     seed_plantillas(db)
 
-    abogado = db.query(Plantilla).filter(Plantilla.slug == "plantilla-abogado").first()
+    abogado = db.query(Plantilla).filter(
+        Plantilla.slug == "plantilla-abogado"
+    ).first()
+
     assert abogado is not None
     assert abogado.nombre == "Landing Page - Abogado"
     assert abogado.activo is True
@@ -40,7 +43,10 @@ def test_seed_plantillas_plantilla_abogado_data(db):
 def test_seed_plantillas_plantilla_blog_data(db):
     seed_plantillas(db)
 
-    blog = db.query(Plantilla).filter(Plantilla.slug == "plantilla-blog").first()
+    blog = db.query(Plantilla).filter(
+        Plantilla.slug == "plantilla-blog"
+    ).first()
+
     assert blog is not None
     assert blog.nombre == "Blog de Noticias"
     assert blog.activo is True
@@ -49,7 +55,23 @@ def test_seed_plantillas_plantilla_blog_data(db):
 def test_seed_plantillas_plantilla_tienda_data(db):
     seed_plantillas(db)
 
-    tienda = db.query(Plantilla).filter(Plantilla.slug == "plantilla-tienda").first()
+    tienda = db.query(Plantilla).filter(
+        Plantilla.slug == "plantilla-tienda"
+    ).first()
+
     assert tienda is not None
     assert tienda.nombre == "Tienda Online"
     assert tienda.activo is True
+
+
+# NUEVO — cubre should_close=True (líneas 71+)
+def test_seed_plantillas_without_db():
+    seed_plantillas()
+
+
+# NUEVO — cubre if __name__ == "__main__"
+def test_seed_plantillas_main():
+    runpy.run_module(
+        "app.db.seed_plantillas",
+        run_name="__main__"
+    )
