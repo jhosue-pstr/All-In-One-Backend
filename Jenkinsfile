@@ -69,9 +69,13 @@ pipeline {
         stage('Setup Performance Infra') {
             steps {
                 sh '''mkdir -p bin
-curl -sL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o bin/docker-compose
-chmod +x bin/docker-compose'''
-                sh '${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d influxdb grafana'
+        curl -sL "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o bin/docker-compose
+        chmod +x bin/docker-compose'''
+
+                sh '''${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml down --remove-orphans || true
+        docker ps -aq --filter "label=com.docker.compose.project=k6" | xargs -r docker rm -f || true
+        docker network prune -f || true
+        ${DOCKER_COMPOSE} -p k6 -f docker-compose.k6.yml up -d influxdb grafana'''
             }
         }
 
@@ -117,6 +121,8 @@ chmod +x bin/docker-compose'''
     post {
         always {
             sh 'docker ps -q --filter "label=com.docker.compose.project=zap" | xargs -r docker rm -f 2>/dev/null || true'
+            sh 'docker ps -q --filter "label=com.docker.compose.project=k6" | xargs -r docker rm -f 2>/dev/null || true'
+            sh 'docker network prune -f 2>/dev/null || true'
             sh 'rm -rf venv/ .pytest_cache __pycache__ .coverage coverage.xml test.db bin/'
             deleteDir()
         }
