@@ -5,7 +5,6 @@ from typing import Annotated, List
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.api.auth import get_current_user
@@ -26,9 +25,13 @@ router = APIRouter(prefix="/modules/blog", tags=["Module: Blog"])
 def is_post_publicly_available(post: Post) -> bool:
     """
     Un post es visible públicamente si:
+    - no está eliminado lógicamente
     - está publicado
     - o está programado y su fecha ya llegó
     """
+    if post.is_deleted:
+        return False
+
     now = datetime.now(timezone.utc)
 
     if post.status == "published":
@@ -49,6 +52,39 @@ def create_category_route(
     return services.create_category(db, site_id, category_in)
 
 
+@router.get("/{site_id}/categories", response_model=List[schemas.CategoryResponse])
+def list_categories_route(
+    site_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return services.get_categories_by_site(db, site_id)
+
+
+@router.put("/{site_id}/categories/{category_id}", response_model=schemas.CategoryResponse)
+def update_category_route(
+    site_id: int,
+    category_id: int,
+    category_in: schemas.CategoryCreate,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return services.update_category(db, site_id, category_id, category_in)
+
+
+@router.delete(
+    "/{site_id}/categories/{category_id}",
+    responses={
+        404: {"description": "Categoría no encontrada"}
+    }
+)
+def delete_category_route(
+    site_id: int,
+    category_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    services.delete_category(db, site_id, category_id)
+    return {"message": "Categoría eliminada correctamente"}
+
+
 @router.post("/{site_id}/posts", response_model=schemas.PostResponse)
 def create_post_route(
     site_id: int,
@@ -64,28 +100,7 @@ def list_posts_route(
     db: Annotated[Session, Depends(get_db)],
     only_published: bool = False,
 ):
-    if not only_published:
-        return services.get_posts_by_site(db, site_id, only_published=False)
-
-    now = datetime.now(timezone.utc)
-
-    result = db.execute(
-        select(Post)
-        .where(
-            Post.site_id == site_id,
-            or_(
-                Post.status == "published",
-                and_(
-                    Post.status == "scheduled",
-                    Post.published_at.is_not(None),
-                    Post.published_at <= now,
-                ),
-            ),
-        )
-        .order_by(Post.published_at.desc().nullslast(), Post.created_at.desc())
-    )
-
-    return result.scalars().all()
+    return services.get_posts_by_site(db, site_id, only_published=only_published)
 
 
 @router.get(
@@ -102,19 +117,9 @@ def get_post_route(
 ):
     """
     Este endpoint lo usa el sitio publicado para ver el detalle del post.
-    Por eso bloqueamos borradores, archivados y programados futuros.
+    Por eso bloqueamos borradores, archivados, eliminados y programados futuros.
     """
-    result = db.execute(
-        select(Post).where(
-            Post.site_id == site_id,
-            Post.slug == slug,
-        )
-    )
-
-    post = result.scalar_one_or_none()
-
-    if not post:
-        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
+    post = services.get_post_by_slug(db, site_id, slug)
 
     if not is_post_publicly_available(post):
         raise HTTPException(status_code=404, detail=ARTICULO_NO_DISPONIBLE)
@@ -135,27 +140,7 @@ def update_post_route(
     post_in: schemas.PostUpdate,
     db: Annotated[Session, Depends(get_db)],
 ):
-    result = db.execute(
-        select(Post).where(
-            Post.id == post_id,
-            Post.site_id == site_id,
-        )
-    )
-
-    post = result.scalar_one_or_none()
-
-    if not post:
-        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
-
-    update_data = post_in.model_dump(exclude_unset=True)
-
-    for field, value in update_data.items():
-        setattr(post, field, value)
-
-    db.commit()
-    db.refresh(post)
-
-    return post
+    return services.update_post(db, site_id, post_id, post_in)
 
 
 @router.delete(
@@ -169,21 +154,7 @@ def delete_post_route(
     post_id: int,
     db: Annotated[Session, Depends(get_db)],
 ):
-    result = db.execute(
-        select(Post).where(
-            Post.id == post_id,
-            Post.site_id == site_id,
-        )
-    )
-
-    post = result.scalar_one_or_none()
-
-    if not post:
-        raise HTTPException(status_code=404, detail=ARTICULO_NO_ENCONTRADO)
-
-    db.delete(post)
-    db.commit()
-
+    services.delete_post(db, site_id, post_id)
     return {"message": "Artículo eliminado correctamente"}
 
 

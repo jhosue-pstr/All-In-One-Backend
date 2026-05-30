@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 import uuid
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import joinedload, Session
 from sqlalchemy import select, func, delete
 from app.packages.modulos.store.models import (
@@ -11,29 +12,63 @@ from app.packages.modulos.store.schemas import (
     CategoriaCreate, CategoriaUpdate, ProductoCreate, ProductoUpdate,
     CheckoutRequest
 )
+from app.models.auditoria import Auditoria
 
 class StoreService:
     def __init__(self, db: Session, sitio_id: int):
         self.db = db
         self.sitio_id = sitio_id
+
+    def _snapshot(self, obj) -> dict:
+        """Convierte un modelo SQLAlchemy a dict seguro para JSON/auditoría."""
+        return jsonable_encoder(obj)
+
+    def _registrar_auditoria(
+        self,
+        entidad: str,
+        entidad_id: int,
+        accion: str,
+        valores_anteriores: dict | None = None,
+        valores_nuevos: dict | None = None,
+        usuario_id: int | None = None,
+    ) -> None:
+        auditoria = Auditoria(
+            entidad=entidad,
+            entidad_id=entidad_id,
+            accion=accion,
+            usuario_id=usuario_id,
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=valores_nuevos,
+        )
+        self.db.add(auditoria)
     
-    def crear_categoria(self, data: CategoriaCreate) -> Categoria:
+    def crear_categoria(self, data: CategoriaCreate, usuario_id: int | None = None) -> Categoria:
         categoria = Categoria(
             site_id=self.sitio_id, # Nota: el modelo actual en BD usa site_id, se respeta para que coincida
             **data.model_dump()
         )
         self.db.add(categoria)
+        self.db.flush()
+        self._registrar_auditoria(
+            entidad="tienda_categorias",
+            entidad_id=categoria.id,
+            accion="INSERT",
+            valores_anteriores=None,
+            valores_nuevos=self._snapshot(categoria),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         self.db.refresh(categoria)
         return categoria
 
-    def get_categoria(self, categoria_id: int) -> Categoria | None:
-        result = self.db.execute(
-            select(Categoria).where(
-                Categoria.id == categoria_id,
-                Categoria.site_id == self.sitio_id
-            )
+    def get_categoria(self, categoria_id: int, solo_activas: bool = True) -> Categoria | None:
+        query = select(Categoria).where(
+            Categoria.id == categoria_id,
+            Categoria.site_id == self.sitio_id,
         )
+        if solo_activas:
+            query = query.where(Categoria.activa == True)
+        result = self.db.execute(query)
         return result.scalar_one_or_none()
 
     def listar_categorias(self, solo_activas: bool = True) -> list[Categoria]:
@@ -44,46 +79,80 @@ class StoreService:
         result = self.db.execute(query)
         return list(result.scalars().all())
 
-    def actualizar_categoria(self, categoria_id: int, data: CategoriaUpdate) -> Categoria | None:
+    def actualizar_categoria(
+        self,
+        categoria_id: int,
+        data: CategoriaUpdate,
+        usuario_id: int | None = None,
+    ) -> Categoria | None:
         categoria = self.get_categoria(categoria_id)
         if not categoria:
             return None
-        
+
+        valores_anteriores = self._snapshot(categoria)
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(categoria, key, value)
-        
+
+        self._registrar_auditoria(
+            entidad="tienda_categorias",
+            entidad_id=categoria.id,
+            accion="UPDATE",
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=self._snapshot(categoria),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         self.db.refresh(categoria)
         return categoria
 
-    def eliminar_categoria(self, categoria_id: int) -> bool:
+    def eliminar_categoria(self, categoria_id: int, usuario_id: int | None = None) -> bool:
         categoria = self.get_categoria(categoria_id)
         if not categoria:
             return False
-        self.db.delete(categoria)
+
+        valores_anteriores = self._snapshot(categoria)
+        categoria.activa = False
+        self._registrar_auditoria(
+            entidad="tienda_categorias",
+            entidad_id=categoria.id,
+            accion="DELETE",
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=self._snapshot(categoria),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         return True
 
     # ==================== PRODUCTOS ====================
 
-    def crear_producto(self, data: ProductoCreate) -> Producto:
+    def crear_producto(self, data: ProductoCreate, usuario_id: int | None = None) -> Producto:
         producto = Producto(
             site_id=self.sitio_id,
             **data.model_dump()
         )
         self.db.add(producto)
+        self.db.flush()
+        self._registrar_auditoria(
+            entidad="tienda_productos",
+            entidad_id=producto.id,
+            accion="INSERT",
+            valores_anteriores=None,
+            valores_nuevos=self._snapshot(producto),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         self.db.refresh(producto)
         return producto
 
-    def get_producto(self, producto_id: int) -> Producto | None:
-        result = self.db.execute(
-            select(Producto).where(
-                Producto.id == producto_id,
-                Producto.site_id == self.sitio_id
-            )
+    def get_producto(self, producto_id: int, solo_activos: bool = True) -> Producto | None:
+        query = select(Producto).where(
+            Producto.id == producto_id,
+            Producto.site_id == self.sitio_id,
         )
+        if solo_activos:
+            query = query.where(Producto.es_activo == True)
+        result = self.db.execute(query)
         return result.scalar_one_or_none()
 
     def listar_productos(
@@ -113,24 +182,48 @@ class StoreService:
         result = self.db.execute(query)
         return list(result.scalars().all()), total
 
-    def actualizar_producto(self, producto_id: int, data: ProductoUpdate) -> Producto | None:
+    def actualizar_producto(
+        self,
+        producto_id: int,
+        data: ProductoUpdate,
+        usuario_id: int | None = None,
+    ) -> Producto | None:
         producto = self.get_producto(producto_id)
         if not producto:
             return None
-        
+
+        valores_anteriores = self._snapshot(producto)
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(producto, key, value)
-        
+
+        self._registrar_auditoria(
+            entidad="tienda_productos",
+            entidad_id=producto.id,
+            accion="UPDATE",
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=self._snapshot(producto),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         self.db.refresh(producto)
         return producto
 
-    def eliminar_producto(self, producto_id: int) -> bool:
+    def eliminar_producto(self, producto_id: int, usuario_id: int | None = None) -> bool:
         producto = self.get_producto(producto_id)
         if not producto:
             return False
-        self.db.delete(producto)
+
+        valores_anteriores = self._snapshot(producto)
+        producto.es_activo = False
+        self._registrar_auditoria(
+            entidad="tienda_productos",
+            entidad_id=producto.id,
+            accion="DELETE",
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=self._snapshot(producto),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         return True
 
@@ -222,6 +315,15 @@ class StoreService:
         for item in items_pedido:
             item.pedido_id = pedido.id
             self.db.add(item)
+
+        self._registrar_auditoria(
+            entidad="tienda_pedidos",
+            entidad_id=pedido.id,
+            accion="INSERT",
+            valores_anteriores=None,
+            valores_nuevos=self._snapshot(pedido),
+            usuario_id=usuario_id,
+        )
         
         if carrito:
             self.db.execute(
@@ -268,15 +370,30 @@ class StoreService:
         result = self.db.execute(query)
         return list(result.scalars().all()), total
 
-    def actualizar_estado_pedido(self, pedido_id: int, nuevo_estado: str) -> Pedido | None:
+    def actualizar_estado_pedido(
+        self,
+        pedido_id: int,
+        nuevo_estado: str,
+        usuario_id: int | None = None,
+    ) -> Pedido | None:
         pedido = self.get_pedido(pedido_id)
         if not pedido:
             return None
+
+        valores_anteriores = self._snapshot(pedido)
         try:
             pedido.estado = PedidoEstado(nuevo_estado)
         except ValueError:
             raise ValueError(f"Estado inválido: {nuevo_estado}")
-        
+
+        self._registrar_auditoria(
+            entidad="tienda_pedidos",
+            entidad_id=pedido.id,
+            accion="UPDATE",
+            valores_anteriores=valores_anteriores,
+            valores_nuevos=self._snapshot(pedido),
+            usuario_id=usuario_id,
+        )
         self.db.commit()
         self.db.refresh(pedido)
         return pedido
