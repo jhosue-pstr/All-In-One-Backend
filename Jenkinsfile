@@ -79,43 +79,43 @@ pipeline {
             }
         }
 
-//         stage('Performance & Security') {
-//             parallel {
-//                 stage('K6 Load Tests') {
-//                     steps {
-//                         // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/01_smoke_test.js || true'
-//                         // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/02_load_test.js || true'
-//                         // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/03_stress_test.js || true'
-//                         // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/04_spike_test.js || true'
-//                         // sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/05_soak_test.js || true'
-//                     }
-//                 }
-//                 stage('ZAP Security Scan') {
-//                     steps {
-//                         script {
-//                             parallel(
-//                                 baseline: {
-//                                     sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm baseline || true'
-//                                 },
-//                                 fullscan: {
-//                                     sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm fullscan || true'
-//                                 },
-//                                 apiscan: {
-//                                     sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm apiscan || true'
-//                                 },
-//                                 tester: {
-//                                     sh '''mkdir -p ./zap/reportes
-// docker run --add-host host.docker.internal:host-gateway --name zap-tester-payload -e TARGET_URL=http://host.docker.internal:8000 zap-tester:latest || true
-// docker cp zap-tester-payload:/zap/wrk/payload-report.html ./zap/reportes/ 2>/dev/null || true
-// docker cp zap-tester-payload:/zap/wrk/payload-report.json ./zap/reportes/ 2>/dev/null || true
-// docker rm zap-tester-payload 2>/dev/null || true'''
-//                                 }
-//                             )
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+         stage('Performance & Security') {
+             parallel {
+                 stage('K6 Load Tests') {
+                     steps {
+                         sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/01_smoke_test.js || true'
+                         sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/02_load_test.js || true'
+                         sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/03_stress_test.js || true'
+                         sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/04_spike_test.js || true'
+                         sh 'docker run --rm --add-host host.docker.internal:host-gateway -e K6_OUT=influxdb=http://host.docker.internal:8086/k6 -e BASE_URL=http://host.docker.internal:8000 k6-tests:latest run /scripts/tests/05_soak_test.js || true'
+                    }
+                }
+                stage('ZAP Security Scan') {
+                    steps {
+                        script {
+                            parallel(
+                                baseline: {
+                                    sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm baseline || true'
+                                },
+                                fullscan: {
+                                    sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm fullscan || true'
+                                },
+                                apiscan: {
+                                    sh '${DOCKER_COMPOSE} -p zap -f docker-compose.zap.yml run --rm apiscan || true'
+                                },
+                                tester: {
+                                    sh '''mkdir -p ./zap/reportes
+docker run --add-host host.docker.internal:host-gateway --name zap-tester-payload -e TARGET_URL=http://host.docker.internal:8000 zap-tester:latest || true
+docker cp zap-tester-payload:/zap/wrk/payload-report.html ./zap/reportes/ 2>/dev/null || true
+docker cp zap-tester-payload:/zap/wrk/payload-report.json ./zap/reportes/ 2>/dev/null || true
+docker rm zap-tester-payload 2>/dev/null || true'''
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
