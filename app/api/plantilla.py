@@ -9,7 +9,7 @@ from fastapi import (
     Request,
     status
 )
-
+from app.core.permissions import require_permission
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session

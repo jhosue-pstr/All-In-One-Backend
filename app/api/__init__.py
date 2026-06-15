@@ -4,6 +4,7 @@ from app.api.sitio_modulo import router as sitio_modulo_router
 from app.api.modulo import router as modulo_router
 from app.api.plantilla import router as plantilla_router
 from app.api.site_auth import router as site_auth_router
+from app.api.rol import router as rol_router
 
 __all__ = [
     "auth_router",
@@ -12,4 +13,5 @@ __all__ = [
     "modulo_router",
     "plantilla_router",
     "site_auth_router",
+    "rol_router",
 ]

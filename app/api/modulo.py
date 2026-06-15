@@ -10,7 +10,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-
+from app.core.permissions import require_permission
 from app.schemas.modulo import (
     ModuloCreate,
     ModuloUpdate,

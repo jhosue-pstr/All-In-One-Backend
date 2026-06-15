@@ -20,6 +20,7 @@ from app.api import (
     modulo_router,
     plantilla_router,
     site_auth_router,
+    rol_router,
 )
 
 from app.api.publico import router as publico_router
@@ -32,9 +33,17 @@ from app.packages.modulos.store.routes import router as store_router
 async def lifespan(app: FastAPI):  # pragma: no cover
     from app.db.database import engine
     from app.db.seed_modulos import seed_modulos
+    from app.db.seed_roles import seed_roles
+    from app.db.database import SessionLocal
 
     Base.metadata.create_all(bind=engine)
     seed_modulos()
+
+    db = SessionLocal()
+    try:
+        seed_roles(db)
+    finally:
+        db.close()
 
     for route in app.routes:
         if hasattr(route, "path"):
@@ -99,6 +108,7 @@ app.include_router(sitio_modulo_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(site_auth_router, prefix="/api")
 app.include_router(plantilla_router, prefix="/api")
+app.include_router(rol_router, prefix="/api")
 
 
 # =========================

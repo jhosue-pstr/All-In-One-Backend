@@ -7,7 +7,7 @@ import uuid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.auth import get_current_user
+from app.core.permissions import require_permission
 from app.db.database import get_db
 from app.models.usuario import User
 from app.packages.modulos.blog import schemas, services
@@ -43,13 +43,23 @@ def is_post_publicly_available(post: Post) -> bool:
     return False
 
 
+# ==========================
+# CATEGORÍAS
+# ==========================
+
 @router.post("/{site_id}/categories", response_model=schemas.CategoryResponse)
 def create_category_route(
     site_id: int,
     category_in: schemas.CategoryCreate,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.crear"))],
 ):
-    return services.create_category(db, site_id, category_in)
+    return services.create_category(
+        db,
+        site_id,
+        category_in,
+        usuario_id=current_user.id,
+    )
 
 
 @router.get("/{site_id}/categories", response_model=List[schemas.CategoryResponse])
@@ -57,6 +67,9 @@ def list_categories_route(
     site_id: int,
     db: Annotated[Session, Depends(get_db)],
 ):
+    """
+    Público: permite que el sitio publicado pueda cargar categorías del blog.
+    """
     return services.get_categories_by_site(db, site_id)
 
 
@@ -66,8 +79,15 @@ def update_category_route(
     category_id: int,
     category_in: schemas.CategoryCreate,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.editar"))],
 ):
-    return services.update_category(db, site_id, category_id, category_in)
+    return services.update_category(
+        db,
+        site_id,
+        category_id,
+        category_in,
+        usuario_id=current_user.id,
+    )
 
 
 @router.delete(
@@ -80,27 +100,75 @@ def delete_category_route(
     site_id: int,
     category_id: int,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.eliminar"))],
 ):
-    services.delete_category(db, site_id, category_id)
+    services.delete_category(
+        db,
+        site_id,
+        category_id,
+        usuario_id=current_user.id,
+    )
+
     return {"message": "Categoría eliminada correctamente"}
 
+
+# ==========================
+# POSTS
+# ==========================
 
 @router.post("/{site_id}/posts", response_model=schemas.PostResponse)
 def create_post_route(
     site_id: int,
     post_in: schemas.PostCreate,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.crear"))],
 ):
-    return services.create_post(db, site_id, post_in)
+    return services.create_post(
+        db,
+        site_id,
+        post_in,
+        usuario_id=current_user.id,
+    )
 
 
 @router.get("/{site_id}/posts", response_model=List[schemas.PostResponse])
 def list_posts_route(
     site_id: int,
     db: Annotated[Session, Depends(get_db)],
-    only_published: bool = False,
+    only_published: bool = True,
 ):
-    return services.get_posts_by_site(db, site_id, only_published=only_published)
+    """
+    Público: este endpoint lo usa el widget/sitio publicado.
+    Por seguridad, siempre debe usarse para publicaciones visibles.
+    """
+    if not only_published:
+        raise HTTPException(
+            status_code=403,
+            detail="Para ver borradores o publicaciones no públicas usa el endpoint administrativo.",
+        )
+
+    return services.get_posts_by_site(
+        db,
+        site_id,
+        only_published=True,
+    )
+
+
+@router.get("/{site_id}/admin/posts", response_model=List[schemas.PostResponse])
+def list_admin_posts_route(
+    site_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.ver"))],
+):
+    """
+    Administrativo: permite ver posts publicados, borradores, programados y archivados,
+    excepto los eliminados lógicamente.
+    """
+    return services.get_posts_by_site(
+        db,
+        site_id,
+        only_published=False,
+    )
 
 
 @router.get(
@@ -116,8 +184,8 @@ def get_post_route(
     db: Annotated[Session, Depends(get_db)],
 ):
     """
-    Este endpoint lo usa el sitio publicado para ver el detalle del post.
-    Por eso bloqueamos borradores, archivados, eliminados y programados futuros.
+    Público: detalle del post publicado.
+    Bloquea borradores, archivados, eliminados y programados futuros.
     """
     post = services.get_post_by_slug(db, site_id, slug)
 
@@ -139,8 +207,15 @@ def update_post_route(
     post_id: int,
     post_in: schemas.PostUpdate,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.editar"))],
 ):
-    return services.update_post(db, site_id, post_id, post_in)
+    return services.update_post(
+        db,
+        site_id,
+        post_id,
+        post_in,
+        usuario_id=current_user.id,
+    )
 
 
 @router.delete(
@@ -153,10 +228,21 @@ def delete_post_route(
     site_id: int,
     post_id: int,
     db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("blog.eliminar"))],
 ):
-    services.delete_post(db, site_id, post_id)
+    services.delete_post(
+        db,
+        site_id,
+        post_id,
+        usuario_id=current_user.id,
+    )
+
     return {"message": "Artículo eliminado correctamente"}
 
+
+# ==========================
+# IMÁGENES DEL BLOG
+# ==========================
 
 @router.post(
     "/{site_id}/upload-image",
@@ -169,7 +255,7 @@ async def upload_blog_image(
     site_id: int,
     file: Annotated[UploadFile, File()],
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_permission("blog.crear"))],
 ):
     """
     Guarda la imagen físicamente en:

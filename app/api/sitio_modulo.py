@@ -4,24 +4,21 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    status
 )
 
 from sqlalchemy.orm import Session
 
+from app.core.permissions import require_permission
 from app.db.database import get_db
 
 from app.service.sitio_modulo import (
     agregar_modulo_a_sitio,
     quitar_modulo_de_sitio,
-    get_modulos_del_sitio
 )
 
 from app.models.sitio import Sitio
-from app.models.modulo import Modulo
-
-from app.api.auth import get_current_user
 from app.models.usuario import User
+
 
 router = APIRouter(
     prefix="/sitios/{sitio_id}/modulos",
@@ -39,14 +36,15 @@ ERROR_SIN_PERMISO = (
 )
 
 
-def es_propietario_sitio(
+def puede_modificar_modulos_sitio(
     db: Session,
     sitio_id: int,
-    usuario_id: int
-):
+    usuario: User,
+) -> bool:
     """
-    Verifica si el usuario autenticado
-    es propietario del sitio.
+    Permite modificar módulos si:
+    - El usuario es super_admin o admin.
+    - O el usuario es propietario del sitio.
     """
 
     sitio = (
@@ -58,7 +56,10 @@ def es_propietario_sitio(
     if not sitio:
         return False
 
-    return sitio.id_usuario == usuario_id
+    if usuario.role in ["super_admin", "admin"]:
+        return True
+
+    return sitio.id_usuario == usuario.id
 
 
 @router.get(
@@ -86,6 +87,9 @@ Lista de identificadores de módulos.
         200: {
             "description": "Módulos obtenidos correctamente"
         },
+        403: {
+            "description": "No tienes permiso para ver módulos"
+        },
         404: {
             "description": "Sitio no encontrado"
         }
@@ -93,7 +97,8 @@ Lista de identificadores de módulos.
 )
 def listar_modulos(
     sitio_id: int,
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_permission("modulos.ver"))],
 ):
     sitio = (
         db.query(Sitio)
@@ -124,7 +129,7 @@ Permite agregar un módulo a un sitio específico.
 - Compatible con sistema drag & drop
 
 ### Seguridad
-Solo el propietario del sitio puede realizar esta acción.
+Solo usuarios con permiso `modulos.activar` pueden realizar esta acción.
 
 ### Validaciones
 - Existencia del sitio
@@ -150,13 +155,12 @@ def agregar_modulo(
     sitio_id: int,
     modulo_id: int,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(require_permission("modulos.activar"))],
 ):
-    # Validar propiedad del sitio
-    if not es_propietario_sitio(
+    if not puede_modificar_modulos_sitio(
         db,
         sitio_id,
-        current_user.id
+        current_user
     ):
         raise HTTPException(
             status_code=403,
@@ -195,7 +199,7 @@ Permite remover un módulo previamente asociado a un sitio.
 - Actualización dinámica del sitio
 
 ### Seguridad
-Solo el propietario puede modificar los módulos del sitio.
+Solo usuarios con permiso `modulos.activar` pueden realizar esta acción.
 
 ### Validaciones
 - Existencia del sitio
@@ -221,13 +225,12 @@ def quitar_modulo(
     sitio_id: int,
     modulo_id: int,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[User, Depends(require_permission("modulos.activar"))],
 ):
-    # Validar propiedad del sitio
-    if not es_propietario_sitio(
+    if not puede_modificar_modulos_sitio(
         db,
         sitio_id,
-        current_user.id
+        current_user
     ):
         raise HTTPException(
             status_code=403,
