@@ -131,7 +131,15 @@ def create_post_route(
     )
 
 
-@router.get("/{site_id}/posts", response_model=List[schemas.PostResponse])
+@router.get(
+    "/{site_id}/posts",
+    response_model=List[schemas.PostResponse],
+    responses={
+        403: {
+            "description": "No permitido ver borradores o publicaciones no públicas desde el endpoint público"
+        }
+    },
+)
 def list_posts_route(
     site_id: int,
     db: Annotated[Session, Depends(get_db)],

@@ -8,7 +8,7 @@ from app.models.usuario import User
 from app.models.auditoria import Auditoria
 from app.schemas.rol import RolCreate, RolUpdate, UsuarioSistemaCreate
 
-
+USUARIO_NO_ENCONTRADO = "Usuario no encontrado"
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12)).decode()
 
@@ -351,7 +351,7 @@ class RolService:
         usuario = self.db.query(User).filter(User.id == user_id).first()
 
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(status_code=404, detail=USUARIO_NO_ENCONTRADO)
 
         if usuario.id == usuario_id and usuario.role == "super_admin" and nuevo_role != "super_admin":
             raise HTTPException(
@@ -409,7 +409,7 @@ class RolService:
         usuario = self.db.query(User).filter(User.id == user_id).first()
 
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(status_code=404, detail=USUARIO_NO_ENCONTRADO)
 
         if usuario.id == usuario_id:
             raise HTTPException(
@@ -449,7 +449,7 @@ class RolService:
         usuario = self.db.query(User).filter(User.id == user_id).first()
 
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(status_code=404, detail=USUARIO_NO_ENCONTRADO)
 
         self._validar_accion_sobre_super_admin(usuario, usuario_actual)
 
