@@ -1,12 +1,54 @@
 import pytest
 import io
+
 from httpx import AsyncClient, ASGITransport
-from app.main import app
 from unittest.mock import patch
+
+from app.main import app
 from app.packages.modulos.blog import blog_module
+from app.db.database import SessionLocal
+from app.models.usuario import User
+
 
 BASE_URL = "http://test"
 SITE_ID = 1
+
+
+def convertir_a_super_admin(correo: str):
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.correo == correo).first()
+        if user:
+            user.role = "super_admin"
+            user.activo = True
+            db.commit()
+    finally:
+        db.close()
+
+
+async def get_admin_headers(ac: AsyncClient, correo: str):
+    await ac.post(
+        "/api/auth/registro",
+        json={
+            "correo": correo,
+            "contrasena": "test123",
+            "nombre": "Admin",
+            "apellido": "Blog",
+        },
+    )
+
+    convertir_a_super_admin(correo)
+
+    resp_login = await ac.post(
+        "/api/auth/inicio",
+        data={
+            "username": correo,
+            "password": "test123",
+        },
+    )
+
+    token = resp_login.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.mark.asyncio
@@ -17,10 +59,22 @@ async def test_blog_flujo_completo():
     búsqueda, eliminación y subida de imagen.
     """
     async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
-        await ac.post("/api/sitios", json={"nombre": "Sitio Blog", "slug": "sitio-blog"})
+        auth_headers = await get_admin_headers(ac, "blog-admin@test.com")
+
+        await ac.post(
+            "/api/sitios",
+            json={"nombre": "Sitio Blog", "slug": "sitio-blog"},
+            headers=auth_headers,
+        )
 
         cat_data = {"name": "Tecnología y Programación!", "description": "Tech"}
-        resp_cat = await ac.post(f"/api/modules/blog/{SITE_ID}/categories", json=cat_data)
+
+        resp_cat = await ac.post(
+            f"/api/modules/blog/{SITE_ID}/categories",
+            json=cat_data,
+            headers=auth_headers,
+        )
+
         assert resp_cat.status_code == 200
         assert resp_cat.json()["slug"] == "tecnologia-y-programacion"
 
@@ -29,12 +83,22 @@ async def test_blog_flujo_completo():
             "content": "Contenido 1",
         }
 
-        resp_post_1 = await ac.post(f"/api/modules/blog/{SITE_ID}/posts", json=post_data_1)
+        resp_post_1 = await ac.post(
+            f"/api/modules/blog/{SITE_ID}/posts",
+            json=post_data_1,
+            headers=auth_headers,
+        )
+
         assert resp_post_1.status_code == 200
         post_1 = resp_post_1.json()
         assert post_1["slug"] == "mi-primer-post"
 
-        resp_post_2 = await ac.post(f"/api/modules/blog/{SITE_ID}/posts", json=post_data_1)
+        resp_post_2 = await ac.post(
+            f"/api/modules/blog/{SITE_ID}/posts",
+            json=post_data_1,
+            headers=auth_headers,
+        )
+
         assert resp_post_2.status_code == 200
         post_2 = resp_post_2.json()
         assert post_2["slug"] == "mi-primer-post-1"
@@ -42,64 +106,73 @@ async def test_blog_flujo_completo():
         resp_upd_1 = await ac.put(
             f"/api/modules/blog/{SITE_ID}/posts/{post_1['id']}",
             json={"status": "published"},
+            headers=auth_headers,
         )
+
         assert resp_upd_1.status_code == 200
 
         resp_upd_2 = await ac.put(
             f"/api/modules/blog/{SITE_ID}/posts/{post_2['id']}",
-            json={"status": "scheduled", "published_at": "2020-01-01T12:00:00Z"},
+            json={
+                "status": "scheduled",
+                "published_at": "2020-01-01T12:00:00Z",
+            },
+            headers=auth_headers,
         )
+
         assert resp_upd_2.status_code == 200
 
-        resp_get = await ac.get(f"/api/modules/blog/{SITE_ID}/posts/mi-primer-post")
+        resp_get = await ac.get(
+            f"/api/modules/blog/{SITE_ID}/posts/mi-primer-post"
+        )
+
         assert resp_get.status_code == 200
         assert resp_get.json()["id"] == post_1["id"]
 
-        resp_get_404 = await ac.get(f"/api/modules/blog/{SITE_ID}/posts/slug-inventado")
+        resp_get_404 = await ac.get(
+            f"/api/modules/blog/{SITE_ID}/posts/slug-inventado"
+        )
+
         assert resp_get_404.status_code == 404
 
         resp_upd_404 = await ac.put(
             f"/api/modules/blog/{SITE_ID}/posts/9999",
             json={"title": "No"},
+            headers=auth_headers,
         )
+
         assert resp_upd_404.status_code == 404
 
-        resp_list_all = await ac.get(f"/api/modules/blog/{SITE_ID}/posts")
+        resp_list_all = await ac.get(
+            f"/api/modules/blog/{SITE_ID}/admin/posts",
+            headers=auth_headers,
+        )
+
         assert resp_list_all.status_code == 200
         assert len(resp_list_all.json()) >= 2
 
-        resp_list_pub = await ac.get(f"/api/modules/blog/{SITE_ID}/posts?only_published=true")
+        resp_list_pub = await ac.get(
+            f"/api/modules/blog/{SITE_ID}/posts?only_published=true"
+        )
+
         assert resp_list_pub.status_code == 200
         publicados = [p["id"] for p in resp_list_pub.json()]
         assert post_1["id"] in publicados
         assert post_2["id"] in publicados
 
-        resp_del = await ac.delete(f"/api/modules/blog/{SITE_ID}/posts/{post_2['id']}")
+        resp_del = await ac.delete(
+            f"/api/modules/blog/{SITE_ID}/posts/{post_2['id']}",
+            headers=auth_headers,
+        )
+
         assert resp_del.status_code == 200
 
-        resp_del_404 = await ac.delete(f"/api/modules/blog/{SITE_ID}/posts/9999")
+        resp_del_404 = await ac.delete(
+            f"/api/modules/blog/{SITE_ID}/posts/9999",
+            headers=auth_headers,
+        )
+
         assert resp_del_404.status_code == 404
-
-        await ac.post(
-            "/api/auth/registro",
-            json={
-                "correo": "blog@test.com",
-                "contrasena": "test123",
-                "nombre": "Blog",
-                "apellido": "Tester",
-            },
-        )
-
-        resp_login = await ac.post(
-            "/api/auth/inicio",
-            data={
-                "username": "blog@test.com",
-                "password": "test123",
-            },
-        )
-
-        token = resp_login.json()["access_token"]
-        auth_headers = {"Authorization": f"Bearer {token}"}
 
         file_valid = {
             "file": ("imagen.png", io.BytesIO(b"fake image data"), "image/png")
@@ -146,26 +219,7 @@ async def test_blog_excepciones_y_modulo():
     assert isinstance(menu, list)
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as ac:
-        await ac.post(
-            "/api/auth/registro",
-            json={
-                "correo": "blog500@test.com",
-                "contrasena": "test123",
-                "nombre": "Blog",
-                "apellido": "Error",
-            },
-        )
-
-        resp_login = await ac.post(
-            "/api/auth/inicio",
-            data={
-                "username": "blog500@test.com",
-                "password": "test123",
-            },
-        )
-
-        token = resp_login.json()["access_token"]
-        auth_headers = {"Authorization": f"Bearer {token}"}
+        auth_headers = await get_admin_headers(ac, "blog500@test.com")
 
         file_valid = {
             "file": ("imagen2.png", io.BytesIO(b"fake data"), "image/png")
@@ -343,26 +397,7 @@ async def test_blog_upload_image_validaciones_extra():
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as ac:
-        await ac.post(
-            "/api/auth/registro",
-            json={
-                "correo": correo,
-                "contrasena": "test123",
-                "nombre": "Blog",
-                "apellido": "Upload",
-            },
-        )
-
-        resp_login = await ac.post(
-            "/api/auth/inicio",
-            data={
-                "username": correo,
-                "password": "test123",
-            },
-        )
-
-        token = resp_login.json()["access_token"]
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = await get_admin_headers(ac, correo)
 
         archivo_sin_nombre = MagicMock()
         archivo_sin_nombre.content_type = "image/png"
@@ -442,17 +477,21 @@ def test_blog_routes_update_category_route(monkeypatch):
     db = MagicMock()
     category_in = MagicMock()
     expected_category = MagicMock()
+    current_user = MagicMock()
+    current_user.id = 1
 
     def fake_update_category(
         received_db,
         received_site_id,
         received_category_id,
         received_category_in,
+        usuario_id=None,
     ):
         assert received_db is db
         assert received_site_id == 1
         assert received_category_id == 5
         assert received_category_in is category_in
+        assert usuario_id == 1
         return expected_category
 
     monkeypatch.setattr(
@@ -466,6 +505,7 @@ def test_blog_routes_update_category_route(monkeypatch):
         category_id=5,
         category_in=category_in,
         db=db,
+        current_user=current_user,
     )
 
     assert result is expected_category
@@ -477,13 +517,21 @@ def test_blog_routes_delete_category_route(monkeypatch):
     from app.packages.modulos.blog import routes
 
     db = MagicMock()
+    current_user = MagicMock()
+    current_user.id = 1
     called = {}
 
-    def fake_delete_category(received_db, received_site_id, received_category_id):
+    def fake_delete_category(
+        received_db,
+        received_site_id,
+        received_category_id,
+        usuario_id=None,
+    ):
         called["ok"] = True
         assert received_db is db
         assert received_site_id == 1
         assert received_category_id == 5
+        assert usuario_id == 1
 
     monkeypatch.setattr(
         routes.services,
@@ -495,6 +543,7 @@ def test_blog_routes_delete_category_route(monkeypatch):
         site_id=1,
         category_id=5,
         db=db,
+        current_user=current_user,
     )
 
     assert called["ok"] is True
@@ -723,6 +772,8 @@ def test_blog_services_get_category_by_id_no_encontrada(db):
 
     assert exc.value.status_code == 404
     assert exc.value.detail == "Categoría no encontrada"
+
+
 def test_blog_services_generate_unique_category_slug_repetido(db):
     from app.packages.modulos.blog import services
     from app.packages.modulos.blog.schemas import CategoryCreate
@@ -775,6 +826,7 @@ def test_blog_services_get_category_by_id_existente(db):
     assert found.id == category.id
     assert found.name == "Categoría buscar por id coverage"
     assert found.slug == "categoria-buscar-por-id-coverage"
+
 
 def test_blog_services_get_categories_by_site(db):
     from app.packages.modulos.blog import services
