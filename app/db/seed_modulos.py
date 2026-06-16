@@ -38,6 +38,16 @@ def seed_modulos():
             },
             "activo": True
         },
+        {
+            "nombre": "Analítica",
+            "slug": "analitica",
+            "descripcion": "Módulo de analítica web (visitas, eventos, estadísticas)",
+            "tipo": "analytics",
+            "configuracion_base": {
+                "enabled": True,
+            },
+            "activo": True
+        },
     ]
     
     with Session(engine) as db:

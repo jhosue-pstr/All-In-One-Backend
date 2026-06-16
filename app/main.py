@@ -27,6 +27,7 @@ from app.api.publico import router as publico_router
 
 from app.packages.modulos.blog.routes import router as blog_router
 from app.packages.modulos.store.routes import router as store_router
+from app.packages.modulos.analitica.routes import router as analitica_router
 
 
 @asynccontextmanager
@@ -117,6 +118,7 @@ app.include_router(rol_router, prefix="/api")
 
 app.include_router(blog_router, prefix="/api")
 app.include_router(store_router, prefix="/api")
+app.include_router(analitica_router, prefix="/api")
 
 
 # =========================
