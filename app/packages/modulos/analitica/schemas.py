@@ -72,6 +72,42 @@ class VisitaPorDia(BaseModel):
     visitas: int
 
 
+class PostResumen(BaseModel):
+    id: int
+    titulo: str
+    slug: str
+    estado: str
+    created_at: datetime
+    categoria: Optional[str] = None
+
+
+class CategoriaPostCount(BaseModel):
+    nombre: str
+    total: int
+
+
+class BlogStats(BaseModel):
+    total_posts: int
+    publicados: int
+    borradores: int
+    posts_por_categoria: list[CategoriaPostCount]
+    ultimos_posts: list[PostResumen]
+
+
+class ProductoVendido(BaseModel):
+    nombre: str
+    cantidad: int
+    total: float
+
+
+class TiendaStats(BaseModel):
+    total_productos: int
+    total_pedidos: int
+    ingresos_totales: float
+    pedidos_por_estado: dict[str, int]
+    productos_mas_vendidos: list[ProductoVendido]
+
+
 class DashboardResponse(BaseModel):
     resumen: ResumenAnalitica
     visitas_por_dia: list[VisitaPorDia]
@@ -80,3 +116,5 @@ class DashboardResponse(BaseModel):
     dispositivos: dict[str, int]
     ultimas_visitas: list[VisitaResponse]
     eventos_recientes: list[EventoResponse]
+    blog: Optional[BlogStats] = None
+    tienda: Optional[TiendaStats] = None

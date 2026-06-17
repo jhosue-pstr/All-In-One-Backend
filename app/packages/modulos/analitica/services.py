@@ -2,16 +2,27 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import HTTPException
-from sqlalchemy import func, select, case
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.models.modulo import Modulo
+from app.models.sitio import Sitio
 from app.packages.modulos.analitica.models import Visita, Evento, Sesion
+from app.packages.modulos.blog.models import Post, Category as BlogCategory, PostStatus
+from app.packages.modulos.store.models import (
+    Producto, Pedido, ItemPedido, PedidoEstado,
+)
 from app.packages.modulos.analitica.schemas import (
     VisitaCreate,
     EventoCreate,
     ResumenAnalitica,
     TopPagina,
     VisitaPorDia,
+    BlogStats,
+    CategoriaPostCount,
+    PostResumen,
+    TiendaStats,
+    ProductoVendido,
     DashboardResponse,
 )
 
@@ -102,6 +113,127 @@ def registrar_evento(
     db.commit()
     db.refresh(evento)
     return evento
+
+
+def _site_tiene_modulo(db: Session, site_id: int, slug: str) -> bool:
+    sitio = db.query(Sitio).filter(Sitio.id == site_id).first()
+    if not sitio:
+        return False
+    return any(m.slug == slug and m.activo for m in sitio.modulos)
+
+
+def _obtener_blog_stats(db: Session, site_id: int) -> BlogStats | None:
+    if not _site_tiene_modulo(db, site_id, "blog"):
+        return None
+
+    total = db.query(Post).filter(
+        Post.site_id == site_id, Post.is_deleted == False
+    ).count()
+
+    publicados = db.query(Post).filter(
+        Post.site_id == site_id,
+        Post.is_deleted == False,
+        Post.status == PostStatus.PUBLISHED,
+    ).count()
+
+    borradores = db.query(Post).filter(
+        Post.site_id == site_id,
+        Post.is_deleted == False,
+        Post.status == PostStatus.DRAFT,
+    ).count()
+
+    cats = (
+        db.query(BlogCategory.name, func.count(Post.id).label("total"))
+        .join(Post, BlogCategory.id == Post.category_id)
+        .filter(
+            Post.site_id == site_id,
+            Post.is_deleted == False,
+            Post.category_id.isnot(None),
+            BlogCategory.is_deleted == False,
+        )
+        .group_by(BlogCategory.name)
+        .order_by(func.count(Post.id).desc())
+        .all()
+    )
+    posts_por_categoria = [CategoriaPostCount(nombre=row[0], total=row[1]) for row in cats]
+
+    ultimos = (
+        db.query(Post.id, Post.title, Post.slug, Post.status, Post.created_at, BlogCategory.name)
+        .outerjoin(BlogCategory, BlogCategory.id == Post.category_id)
+        .filter(Post.site_id == site_id, Post.is_deleted == False)
+        .order_by(Post.created_at.desc())
+        .limit(5)
+        .all()
+    )
+    ultimos_posts = [
+        PostResumen(id=r[0], titulo=r[1], slug=r[2], estado=r[3].value, created_at=r[4], categoria=r[5])
+        for r in ultimos
+    ]
+
+    return BlogStats(
+        total_posts=total,
+        publicados=publicados,
+        borradores=borradores,
+        posts_por_categoria=posts_por_categoria,
+        ultimos_posts=ultimos_posts,
+    )
+
+
+def _obtener_tienda_stats(db: Session, site_id: int) -> TiendaStats | None:
+    if not _site_tiene_modulo(db, site_id, "tienda"):
+        return None
+
+    total_productos = db.query(Producto).filter(
+        Producto.site_id == site_id, Producto.es_activo == True
+    ).count()
+
+    total_pedidos = db.query(Pedido).filter(
+        Pedido.site_id == site_id
+    ).count()
+
+    ingresos = (
+        db.query(func.coalesce(func.sum(Pedido.total), 0))
+        .filter(
+            Pedido.site_id == site_id,
+            Pedido.estado != PedidoEstado.CANCELADO,
+        )
+        .scalar()
+    ) or 0
+
+    estados = (
+        db.query(Pedido.estado, func.count(Pedido.id).label("total"))
+        .filter(Pedido.site_id == site_id)
+        .group_by(Pedido.estado)
+        .order_by(func.count(Pedido.id).desc())
+        .all()
+    )
+    pedidos_por_estado = {str(row[0]): row[1] for row in estados}
+
+    top = (
+        db.query(
+            ItemPedido.nombre_producto,
+            func.sum(ItemPedido.cantidad).label("cantidad"),
+            func.sum(ItemPedido.total).label("total"),
+        )
+        .join(Pedido, Pedido.id == ItemPedido.pedido_id)
+        .filter(Pedido.site_id == site_id)
+        .group_by(ItemPedido.nombre_producto)
+        .order_by(func.sum(ItemPedido.cantidad).desc())
+        .limit(5)
+        .all()
+    )
+    productos_mas_vendidos = [
+        ProductoVendido(nombre=r[0], cantidad=r[1], total=float(r[2]))
+        for r in top
+    ]
+
+    return TiendaStats(
+        total_productos=total_productos,
+        total_pedidos=total_pedidos,
+        ingresos_totales=float(ingresos),
+        pedidos_por_estado=pedidos_por_estado,
+        productos_mas_vendidos=productos_mas_vendidos,
+    )
 
 
 def obtener_dashboard(db: Session, site_id: int, dias: int = 7) -> DashboardResponse:
@@ -200,6 +332,9 @@ def obtener_dashboard(db: Session, site_id: int, dias: int = 7) -> DashboardResp
         .limit(10)
     ).scalars().all()
 
+    blog_stats = _obtener_blog_stats(db, site_id)
+    tienda_stats = _obtener_tienda_stats(db, site_id)
+
     return DashboardResponse(
         resumen=resumen,
         visitas_por_dia=visitas_por_dia,
@@ -208,6 +343,8 @@ def obtener_dashboard(db: Session, site_id: int, dias: int = 7) -> DashboardResp
         dispositivos=dispositivos,
         ultimas_visitas=[Visita for Visita in ultimas_visitas],
         eventos_recientes=[Evento for Evento in eventos_recientes],
+        blog=blog_stats,
+        tienda=tienda_stats,
     )
 
 

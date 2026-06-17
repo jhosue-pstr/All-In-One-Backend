@@ -5,3 +5,4 @@ from app.models.modulo import Modulo
 from app.packages.modulos.SiteAuth.models.sitio_usuario import UsuarioSitio
 from .auditoria import Auditoria
 from app.models.rol import Rol, Permiso, RolPermiso
+from app.packages.modulos.analitica.models import Visita, Evento, Sesion

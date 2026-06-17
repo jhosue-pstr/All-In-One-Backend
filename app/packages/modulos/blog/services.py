@@ -9,6 +9,8 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.auditoria import Auditoria
+from app.packages.modulos.analitica.services import registrar_evento
+from app.packages.modulos.analitica.schemas import EventoCreate
 from app.packages.modulos.blog.models import Category, Post, PostStatus
 from app.packages.modulos.blog.schemas import CategoryCreate, PostCreate, PostUpdate
 
@@ -107,6 +109,11 @@ def create_post(db: Session, site_id: int, post_in: PostCreate, usuario_id: Opti
         valores_nuevos=_snapshot(new_post),
     )
 
+    registrar_evento(
+        db, site_id,
+        EventoCreate(tipo="blog.post_created", etiqueta=new_post.title, url=f"/blog/{new_post.slug}"),
+    )
+
     db.commit()
     db.refresh(new_post)
     return new_post
@@ -191,6 +198,12 @@ def update_post(
         valores_anteriores=valores_anteriores,
         valores_nuevos=_snapshot(post),
     )
+
+    if update_data.get("status") == "published" and post.status != PostStatus.PUBLISHED:
+        registrar_evento(
+            db, site_id,
+            EventoCreate(tipo="blog.post_published", etiqueta=post.title, url=f"/blog/{post.slug}"),
+        )
 
     db.commit()
     db.refresh(post)

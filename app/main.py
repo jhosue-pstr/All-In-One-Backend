@@ -46,6 +46,10 @@ async def lifespan(app: FastAPI):  # pragma: no cover
     finally:
         db.close()
 
+    from app.db.seed_plantillas import seed_plantillas
+
+    seed_plantillas()
+
     for route in app.routes:
         if hasattr(route, "path"):
             print(f"Ruta cargada: {route.path}")
