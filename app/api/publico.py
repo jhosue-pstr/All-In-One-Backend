@@ -27,6 +27,8 @@ WIDGET_SCRIPT = (
     '<script src="/static/site-widget.js" defer></script>'
 )
 
+ANALITICA_TAG = '<div data-analitica-site="{{SITIO_ID}}" style="display:none"></div>'
+
 
 def injectar_recursos(
     html: str,
@@ -75,9 +77,9 @@ def injectar_recursos(
         html = f"<head>{css_style}</head>{html}"
 
     widget = WIDGET_SCRIPT
+    analitica_div = ANALITICA_TAG.replace("{{SITIO_ID}}", str(sitio_id)) if sitio_id else ""
 
-    # Insertar widget + JS antes del cierre del body
-    scripts = f"{js_script}{widget}"
+    scripts = f"{analitica_div}{js_script}{widget}"
     if "</body>" in html.lower():
         html = html.replace(
             "</body>",

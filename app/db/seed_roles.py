@@ -52,6 +52,10 @@ PERM_ROLES_USUARIOS = "roles.usuarios"
 # Permisos - Auditoría
 PERM_AUDITORIA_VER = "auditoria.ver"
 
+# Permisos - Analítica
+PERM_ANALITICA_VER = "analitica.ver"
+PERM_ANALITICA_CREAR = "analitica.crear"
+
 
 PERMISOS_BASE = [
     # Inicio
@@ -102,6 +106,10 @@ PERMISOS_BASE = [
 
     # Auditoría
     (PERM_AUDITORIA_VER, "Ver auditoría", "auditoria"),
+
+    # Analítica
+    (PERM_ANALITICA_VER, "Ver analítica", "analitica"),
+    (PERM_ANALITICA_CREAR, "Crear eventos de analítica", "analitica"),
 ]
 
 
@@ -137,6 +145,7 @@ ROLES_BASE = {
             PERM_ROLES_VER,
             PERM_ROLES_USUARIOS,
             PERM_AUDITORIA_VER,
+            PERM_ANALITICA_VER,
         ],
     },
     "editor_sitios": {
@@ -192,6 +201,7 @@ ROLES_BASE = {
             PERM_TIENDA_VER,
             PERM_CONFIGURACIONES_VER,
             PERM_AUDITORIA_VER,
+            PERM_ANALITICA_VER,
         ],
     },
     "user": {

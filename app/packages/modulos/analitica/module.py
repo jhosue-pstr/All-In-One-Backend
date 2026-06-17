@@ -1,0 +1,1 @@
+from app.packages.modulos.base import Module  # noqa: F401

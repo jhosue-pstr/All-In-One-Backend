@@ -13,6 +13,8 @@ from app.packages.modulos.store.schemas import (
     CheckoutRequest
 )
 from app.models.auditoria import Auditoria
+from app.packages.modulos.analitica.services import registrar_evento
+from app.packages.modulos.analitica.schemas import EventoCreate
 
 class StoreService:
     def __init__(self, db: Session, sitio_id: int):
@@ -338,6 +340,21 @@ class StoreService:
             .where(Pedido.id == pedido.id)
         )
         pedido_completo = result_final.unique().scalar_one()
+
+        registrar_evento(
+            self.db, self.sitio_id,
+            EventoCreate(
+                tipo="tienda.pedido_creado",
+                etiqueta=pedido_completo.numero_pedido,
+                valor=str(pedido_completo.total),
+                metadata_json={
+                    "pedido_id": pedido_completo.id,
+                    "total": float(pedido_completo.total),
+                    "items": len(pedido_completo.items),
+                    "cliente": pedido_completo.nombre_cliente,
+                },
+            ),
+        )
         
         return pedido_completo
 
