@@ -63,6 +63,7 @@ class ResumenAnalitica(BaseModel):
 
 class TopPagina(BaseModel):
     url: str
+    titulo_pagina: Optional[str] = None
     visitas: int
     porcentaje: float
 

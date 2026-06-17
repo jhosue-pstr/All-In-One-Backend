@@ -373,7 +373,7 @@ def _obtener_top_paginas(
     desde: datetime,
     limite: int = 10,
 ) -> list[TopPagina]:
-    rows = db.execute(
+    count_rows = db.execute(
         select(Visita.url, func.count(Visita.id))
         .where(
             Visita.site_id == site_id,
@@ -384,10 +384,38 @@ def _obtener_top_paginas(
         .limit(limite)
     ).all()
 
-    total = sum(row[1] for row in rows) or 1
+    if not count_rows:
+        return []
+
+    total = sum(row[1] for row in count_rows) or 1
+    urls = [row[0] for row in count_rows]
+
+    ranked = (
+        select(
+            Visita.url,
+            Visita.titulo_pagina,
+            func.row_number()
+            .over(partition_by=Visita.url, order_by=Visita.created_at.desc())
+            .label("rn"),
+        )
+        .where(Visita.url.in_(urls), Visita.site_id == site_id)
+        .subquery()
+    )
+
+    latest_titles = db.execute(
+        select(ranked.c.url, ranked.c.titulo_pagina).where(ranked.c.rn == 1)
+    ).all()
+
+    title_map = {r[0]: r[1] for r in latest_titles}
+
     return [
-        TopPagina(url=row[0], visitas=row[1], porcentaje=round((row[1] / total) * 100, 1))
-        for row in rows
+        TopPagina(
+            url=row[0],
+            titulo_pagina=title_map.get(row[0]),
+            visitas=row[1],
+            porcentaje=round((row[1] / total) * 100, 1),
+        )
+        for row in count_rows
     ]
 
 
