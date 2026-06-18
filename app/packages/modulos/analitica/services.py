@@ -74,7 +74,10 @@ def _actualizar_sesion(db: Session, site_id: int, session_id: str) -> None:
     if sesion:
         sesion.fin = ahora
         sesion.paginas_vistas = Sesion.paginas_vistas + 1
-        delta = (ahora - sesion.inicio).total_seconds()
+        inicio = sesion.inicio
+        if inicio.tzinfo is None:
+            inicio = inicio.replace(tzinfo=timezone.utc)
+        delta = (ahora - inicio).total_seconds()
         sesion.duracion_segundos = int(delta)
     else:
         sesion = Sesion(
