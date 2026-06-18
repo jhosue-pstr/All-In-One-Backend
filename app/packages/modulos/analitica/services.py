@@ -248,13 +248,6 @@ def obtener_dashboard(db: Session, site_id: int, dias: int = 7) -> DashboardResp
         )
     ).scalar() or 0
 
-    visitas_periodo = db.execute(
-        select(func.count(Visita.id)).where(
-            Visita.site_id == site_id,
-            Visita.created_at >= inicio_periodo,
-        )
-    ).scalar() or 0
-
     visitantes_unicos = db.execute(
         select(func.count(func.distinct(Visita.session_id))).where(
             Visita.site_id == site_id,
@@ -341,8 +334,8 @@ def obtener_dashboard(db: Session, site_id: int, dias: int = 7) -> DashboardResp
         top_paginas=top_paginas,
         navegadores=navegadores,
         dispositivos=dispositivos,
-        ultimas_visitas=[Visita for Visita in ultimas_visitas],
-        eventos_recientes=[Evento for Evento in eventos_recientes],
+        ultimas_visitas=list(ultimas_visitas),
+        eventos_recientes=list(eventos_recientes),
         blog=blog_stats,
         tienda=tienda_stats,
     )

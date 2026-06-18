@@ -14,14 +14,14 @@ class VisitaResponse(BaseModel):
     id: int
     site_id: int
     url: str
-    titulo_pagina: Optional[str]
-    ip: Optional[str]
-    user_agent: Optional[str]
-    referer: Optional[str]
-    session_id: Optional[str]
-    navegador: Optional[str]
-    dispositivo: Optional[str]
-    pais: Optional[str]
+    titulo_pagina: Optional[str] = Field(None)
+    ip: Optional[str] = Field(None)
+    user_agent: Optional[str] = Field(None)
+    referer: Optional[str] = Field(None)
+    session_id: Optional[str] = Field(None)
+    navegador: Optional[str] = Field(None)
+    dispositivo: Optional[str] = Field(None)
+    pais: Optional[str] = Field(None)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -40,11 +40,11 @@ class EventoResponse(BaseModel):
     id: int
     site_id: int
     tipo: str
-    etiqueta: Optional[str]
-    valor: Optional[str]
-    metadata_json: Optional[Any]
-    url: Optional[str]
-    session_id: Optional[str]
+    etiqueta: Optional[str] = Field(None)
+    valor: Optional[str] = Field(None)
+    metadata_json: Optional[Any] = Field(None)
+    url: Optional[str] = Field(None)
+    session_id: Optional[str] = Field(None)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

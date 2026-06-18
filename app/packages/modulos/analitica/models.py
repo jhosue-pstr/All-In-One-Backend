@@ -5,11 +5,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models.base import BaseModel, TimestampMixin
 
+FK_SITIO = "sitios.id"
+
 
 class Visita(BaseModel, TimestampMixin):
     __tablename__ = "analitica_visitas"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIO, ondelete="CASCADE"), nullable=False)
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     titulo_pagina: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     ip: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
@@ -24,7 +26,7 @@ class Visita(BaseModel, TimestampMixin):
 class Evento(BaseModel, TimestampMixin):
     __tablename__ = "analitica_eventos"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIO, ondelete="CASCADE"), nullable=False)
     session_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     tipo: Mapped[str] = mapped_column(String(100), nullable=False)
     etiqueta: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -36,7 +38,7 @@ class Evento(BaseModel, TimestampMixin):
 class Sesion(BaseModel, TimestampMixin):
     __tablename__ = "analitica_sesiones"
 
-    site_id: Mapped[int] = mapped_column(Integer, ForeignKey("sitios.id", ondelete="CASCADE"), nullable=False)
+    site_id: Mapped[int] = mapped_column(Integer, ForeignKey(FK_SITIO, ondelete="CASCADE"), nullable=False)
     session_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     ip: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
