@@ -1,6 +1,10 @@
 site_name: All-InOne Backend
-site_description: Documentación técnica del backend de la plataforma All-InOne
+site_description: Documentación técnica del backend de la plataforma SaaS multitenant All-InOne
 site_author: ModularSoft - Grupo 4
+repo_name: all-inone-backend
+# repo_url: https://github.com/TU_USUARIO/TU_REPO_BACKEND
+
+copyright: Proyecto académico - ModularSoft / Universidad Peruana Unión
 
 theme:
   name: material
@@ -8,24 +12,75 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.expand
     - navigation.top
+    - navigation.footer
     - search.suggest
     - search.highlight
     - content.code.copy
+    - content.tabs.link
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Cambiar a modo oscuro
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Cambiar a modo claro
 
 nav:
   - Inicio: index.md
-  - Instalación local: instalacion.md
-  - Arquitectura backend: arquitectura.md
-  - API y endpoints: api.md
-  - Pruebas: pruebas.md
-  - Seguridad: seguridad.md
-  - Despliegue de prueba: despliegue-prueba.md
+  - Primeros pasos:
+      - Instalación local: instalacion.md
+      - Estructura del repositorio: arquitectura/estructura.md
+  - Arquitectura:
+      - Visión general: arquitectura/vision-general.md
+      - Capas y responsabilidades: arquitectura/capas.md
+      - Multitenancy: arquitectura/multitenancy.md
+      - Módulos del sistema: arquitectura/modulos.md
+      - Auditoría y soft delete: arquitectura/auditoria-soft-delete.md
+  - API:
+      - Resumen de endpoints: api/resumen-endpoints.md
+      - Autenticación interna: api/autenticacion.md
+      - Sitios, plantillas y módulos: api/sitios-plantillas-modulos.md
+      - Auth público: api/auth-publico.md
+      - Blog: api/blog.md
+      - Tienda: api/tienda.md
+      - Analítica: api/analitica.md
+  - Pruebas y calidad:
+      - Estrategia de pruebas: pruebas/estrategia.md
+      - Pytest: pruebas/pytest.md
+      - k6 rendimiento: pruebas/k6.md
+      - OWASP ZAP: pruebas/zap.md
+      - Jenkins y calidad: pruebas/jenkins-calidad.md
+  - Seguridad:
+      - Controles principales: seguridad/controles.md
+      - Roles y permisos: seguridad/roles-permisos.md
+      - Riesgos y consideraciones: seguridad/riesgos.md
+  - Despliegue:
+      - Despliegue de prueba: despliegue/despliegue-prueba.md
+      - Variables y configuración: despliegue/configuracion.md
+  - Auditoría SDLC:
+      - Evidencias del backend: sdlc/evidencias.md
+      - Limitaciones: sdlc/limitaciones.md
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - tables
   - toc:
       permalink: true
-  - pymdownx.highlight
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
