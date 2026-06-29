@@ -1,0 +1,31 @@
+site_name: All-InOne Backend
+site_description: Documentación técnica del backend de la plataforma All-InOne
+site_author: ModularSoft - Grupo 4
+
+theme:
+  name: material
+  language: es
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Inicio: index.md
+  - Instalación local: instalacion.md
+  - Arquitectura backend: arquitectura.md
+  - API y endpoints: api.md
+  - Pruebas: pruebas.md
+  - Seguridad: seguridad.md
+  - Despliegue de prueba: despliegue-prueba.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences

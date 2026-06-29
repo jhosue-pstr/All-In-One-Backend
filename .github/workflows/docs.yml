@@ -1,0 +1,29 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar dependencias de documentación
+        run: pip install -r requirements-docs.txt
+
+      - name: Publicar documentación en GitHub Pages
+        run: mkdocs gh-deploy --force
