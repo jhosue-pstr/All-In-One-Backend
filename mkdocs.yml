@@ -35,39 +35,52 @@ theme:
 
 nav:
   - Inicio: index.md
-  - Primeros pasos:
-      - Instalación local: instalacion.md
-      - Estructura del repositorio: arquitectura/estructura.md
-  - Arquitectura:
-      - Visión general: arquitectura/vision-general.md
-      - Capas y responsabilidades: arquitectura/capas.md
-      - Multitenancy: arquitectura/multitenancy.md
-      - Módulos del sistema: arquitectura/modulos.md
-      - Auditoría y soft delete: arquitectura/auditoria-soft-delete.md
-  - API:
-      - Resumen de endpoints: api/resumen-endpoints.md
-      - Autenticación interna: api/autenticacion.md
-      - Sitios, plantillas y módulos: api/sitios-plantillas-modulos.md
-      - Auth público: api/auth-publico.md
-      - Blog: api/blog.md
-      - Tienda: api/tienda.md
-      - Analítica: api/analitica.md
-  - Pruebas y calidad:
-      - Estrategia de pruebas: pruebas/estrategia.md
-      - Pytest: pruebas/pytest.md
-      - k6 rendimiento: pruebas/k6.md
-      - OWASP ZAP: pruebas/zap.md
-      - Jenkins y calidad: pruebas/jenkins-calidad.md
-  - Seguridad:
-      - Controles principales: seguridad/controles.md
-      - Roles y permisos: seguridad/roles-permisos.md
-      - Riesgos y consideraciones: seguridad/riesgos.md
-  - Despliegue:
-      - Despliegue de prueba: despliegue/despliegue-prueba.md
-      - Variables y configuración: despliegue/configuracion.md
+  - Documentación del Backend:
+      - Primeros pasos:
+          - Instalación local: instalacion.md
+          - Estructura del repositorio: arquitectura/estructura.md
+      - Arquitectura:
+          - Visión general: arquitectura/vision-general.md
+          - Capas y responsabilidades: arquitectura/capas.md
+          - Multitenancy: arquitectura/multitenancy.md
+          - Módulos del sistema: arquitectura/modulos.md
+          - Auditoría y soft delete: arquitectura/auditoria-soft-delete.md
+      - API:
+          - Resumen de endpoints: api/resumen-endpoints.md
+          - Autenticación interna: api/autenticacion.md
+          - Sitios, plantillas y módulos: api/sitios-plantillas-modulos.md
+          - Auth público: api/auth-publico.md
+          - Blog: api/blog.md
+          - Tienda: api/tienda.md
+          - Analítica: api/analitica.md
+      - Pruebas y calidad:
+          - Estrategia de pruebas: pruebas/estrategia.md
+          - Pytest: pruebas/pytest.md
+          - k6 rendimiento: pruebas/k6.md
+          - OWASP ZAP: pruebas/zap.md
+          - Jenkins y calidad: pruebas/jenkins-calidad.md
+      - Seguridad:
+          - Controles principales: seguridad/controles.md
+          - Roles y permisos: seguridad/roles-permisos.md
+          - Riesgos y consideraciones: seguridad/riesgos.md
+      - Despliegue:
+          - Despliegue de prueba: despliegue/despliegue-prueba.md
+          - Variables y configuración: despliegue/configuracion.md
+      - SDLC Backend:
+          - Evidencias del backend: sdlc/evidencias.md
+          - Limitaciones: sdlc/limitaciones.md
   - Auditoría SDLC:
-      - Evidencias del backend: sdlc/evidencias.md
-      - Limitaciones: sdlc/limitaciones.md
+      - Inicio Auditoría: auditoria/index.md
+      - Project Charter: auditoria/project-charter.md
+      - Antecedentes: auditoria/antecedentes.md
+      - Justificación y problema: auditoria/justificacion-problema.md
+      - Objetivos, alcance y exclusiones: auditoria/objetivos-alcance.md
+      - Criterios y metodología: auditoria/criterios-metodologia.md
+      - Entregables y stakeholders: auditoria/entregables-stakeholders.md
+      - Cronograma y presupuesto: auditoria/cronograma-presupuesto.md
+      - Riesgos y factores críticos: auditoria/riesgos-factores.md
+      - Cierre de auditoría: auditoria/cierre-auditoria.md
+      - Checklist SDLC: auditoria/checklist-sdlc.md
 
 markdown_extensions:
   - admonition

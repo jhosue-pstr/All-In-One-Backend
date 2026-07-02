@@ -1,53 +1,56 @@
 # All-InOne Backend
 
-Bienvenido a la documentación técnica del **backend de All-InOne**, una plataforma SaaS multitenant desarrollada por **ModularSoft - Grupo 4**.
+Bienvenido a la documentación del **backend de All-InOne**, una plataforma SaaS multitenant desarrollada por **ModularSoft - Grupo 4**.
 
-Esta documentación tiene como finalidad explicar de forma ordenada la estructura, arquitectura, API, seguridad, pruebas, calidad y despliegue de prueba del backend.
+Desde esta página puedes ingresar a dos bloques principales: la documentación técnica del backend y la documentación de auditoría SDLC basada en el Project Charter.
+
+<div class="grid cards" markdown>
+
+-   :material-server: **Documentación del Backend**
+
+    Arquitectura, estructura del repositorio, API, seguridad, pruebas, calidad y despliegue de prueba del backend.
+
+    [Ver backend](arquitectura/vision-general.md)
+
+-   :material-clipboard-check: **Auditoría SDLC**
+
+    Project Charter, criterios, metodología, riesgos, checklist SDLC, entregables y limitaciones de la auditoría.
+
+    [Ver auditoría](auditoria/index.md)
+
+</div>
 
 !!! info "Alcance de esta documentación"
     Esta documentación describe el backend como parte de un proyecto académico. El sistema cuenta con despliegue y evidencias técnicas de prueba, pero no representa una implementación productiva formal para una empresa real.
 
-## Propósito del backend
+## ¿Qué contiene la documentación del backend?
 
-El backend es responsable de exponer los servicios principales de All-InOne mediante una API construida con **FastAPI**. Desde esta capa se gestionan los usuarios, roles, permisos, sitios, plantillas, módulos activables, blog, tienda, autenticación pública, analítica, auditoría y eliminación lógica.
+- Arquitectura de monolito modular.
+- Estructura del backend.
+- API y endpoints principales.
+- Seguridad, JWT, roles y permisos.
+- Multitenancy por sitio o tenant.
+- Pruebas con Pytest, k6, OWASP ZAP y herramientas de calidad.
+- Despliegue técnico de prueba.
 
-## Tecnologías principales
+## ¿Qué contiene la auditoría SDLC?
 
-| Tecnología | Uso dentro del backend |
-|---|---|
-| FastAPI | Construcción de API REST |
-| Python | Lenguaje principal del backend |
-| SQLAlchemy | Acceso y persistencia de datos |
-| JWT | Autenticación mediante tokens |
-| RBAC | Control de acceso basado en roles y permisos |
-| Swagger/OpenAPI | Documentación automática de endpoints |
-| Pytest | Pruebas automatizadas del backend |
-| k6 | Pruebas de rendimiento |
-| OWASP ZAP | Pruebas de seguridad dinámicas |
-| Jenkins | Integración continua y ejecución de tareas automatizadas |
-
-## Componentes funcionales
-
-- Autenticación interna.
-- Gestión de usuarios del sistema.
-- Gestión de roles y permisos.
-- Gestión de sitios o tenants.
-- Gestión de plantillas.
-- Activación y desactivación de módulos por sitio.
-- Módulo Blog.
-- Módulo Tienda.
-- Módulo Auth Público.
-- Módulo Analítica.
-- Auditoría de operaciones relevantes.
-- Soft delete para preservar registros importantes.
+- Project Charter de Auditoría SDLC.
+- Objetivos, alcance y exclusiones.
+- Criterios de auditoría.
+- Metodología de auditoría.
+- Entregables y stakeholders.
+- Cronograma y presupuesto estimado.
+- Riesgos, factores críticos, supuestos y restricciones.
+- Checklist SDLC aplicado al proyecto.
 
 ## Lectura recomendada
 
-Para entender el proyecto rápidamente, revisar en este orden:
+Para entender el sitio rápidamente, revisar en este orden:
 
-1. [Instalación local](instalacion.md)
-2. [Visión general de arquitectura](arquitectura/vision-general.md)
+1. [Visión general del backend](arquitectura/vision-general.md)
+2. [Estructura del repositorio](arquitectura/estructura.md)
 3. [Resumen de endpoints](api/resumen-endpoints.md)
 4. [Controles de seguridad](seguridad/controles.md)
-5. [Estrategia de pruebas](pruebas/estrategia.md)
-6. [Limitaciones SDLC](sdlc/limitaciones.md)
+5. [Auditoría SDLC](auditoria/index.md)
+6. [Checklist SDLC](auditoria/checklist-sdlc.md)
