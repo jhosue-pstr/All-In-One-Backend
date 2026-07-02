@@ -1,22 +1,46 @@
 # Criterios de aceptación
 
-Los criterios de aceptación indican cuándo la auditoría puede considerarse terminada correctamente.
+Los criterios de aceptación definen cuándo la auditoría puede considerarse terminada correctamente.
 
 ## Condiciones de cierre
 
-La auditoría se acepta cuando:
+Para aceptar la auditoría, deben haberse completado actividades como:
 
-- Se ejecutan las fases definidas.
-- Se elabora el Plan de Auditoría.
-- Se aplica el Checklist SDLC.
-- Se recopila evidencia suficiente.
-- Se revisa informe principal, Jira, backend y frontend.
-- Se revisan pruebas, seguridad y calidad.
-- Se elaboran matriz de hallazgos y matriz de riesgos.
-- Se emite informe preliminar e informe final.
-- Se propone plan de acción correctiva.
-- Se archivan papeles de trabajo.
-- Se elabora acta de cierre.
+- ejecutar las fases de auditoría definidas;
+- elaborar el Plan de Auditoría;
+- aplicar el Checklist SDLC adaptado;
+- recopilar evidencia suficiente, pertinente y confiable;
+- revisar informe principal, Jira, backend y frontend;
+- evaluar coherencia entre arquitectura documentada e implementación real;
+- verificar trazabilidad entre requisitos, sprints, módulos y pruebas;
+- revisar reportes funcionales, E2E, seguridad, rendimiento y análisis estático;
+- evaluar controles de seguridad, auditoría y soft delete;
+- elaborar Matriz de Hallazgos y Matriz de Riesgos;
+- emitir Informe Preliminar e Informe Final;
+- proponer Plan de Acción Correctiva;
+- elaborar Acta de Cierre;
+- archivar papeles de trabajo y evidencias.
 
-!!! note "Importante"
-    Estos criterios no significan que ya todo esté cumplido; son condiciones para aceptar el cierre formal de la auditoría.
+## Agrupación por tipo
+
+| Tipo de criterio | Ejemplos |
+|---|---|
+| Metodológico | Fases ejecutadas, plan de auditoría, checklist aplicado. |
+| Técnico | Backend, frontend, arquitectura, seguridad, pruebas y calidad revisados. |
+| Documental | Evidencias, papeles de trabajo, matrices e informes elaborados. |
+| De cierre | Plan correctivo, acta de cierre y archivo de evidencias. |
+
+## ¿Estos criterios ya están cumplidos?
+
+No necesariamente. Representan condiciones que deben cumplirse para declarar la auditoría como finalizada.
+
+!!! question "Pregunta probable"
+    **¿Para qué sirven los criterios de aceptación?**  
+    Sirven para definir objetivamente cuándo el trabajo auditor puede darse por concluido y aceptado.
+
+<div class="defense-box" markdown>
+
+**Frase clave:**  
+“La auditoría se acepta cuando sus fases, evidencias, hallazgos, informes y cierre formal han sido completados de manera sustentada.”
+
+</div>

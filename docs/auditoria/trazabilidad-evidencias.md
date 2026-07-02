@@ -1,32 +1,50 @@
 # Trazabilidad de evidencias
 
-La auditoría necesita relacionar cada conclusión con evidencia.
+La trazabilidad permite conectar lo que el proyecto dice, lo que se planificó, lo que se implementó y lo que se probó.
 
-## Fuentes principales
+## Cadena de trazabilidad
 
-- Project Charter.
-- Checklist SDLC.
-- Informe principal del proyecto.
-- Documentación Jira.
-- Repositorio backend.
-- Repositorio frontend.
-- MkDocs backend.
-- MkDocs frontend.
-- Reportes de pruebas.
-- Jenkins.
-- Swagger/OpenAPI.
-- Sonar/Snyk.
-- k6 y OWASP ZAP.
+```text
+Requisito → Historia de usuario → Sprint / tarea Jira → Módulo → Código → Prueba → Evidencia → Conclusión de auditoría
+```
 
-## Cómo se usa la trazabilidad
+## Fuentes de evidencia
 
-La trazabilidad permite responder:
+| Fuente | Qué evidencia aporta |
+|---|---|
+| Project Charter | Objetivos, alcance, criterios, metodología, riesgos y cierre de auditoría. |
+| Checklist SDLC | Evaluación operativa de cumplimiento / no cumplimiento. |
+| Informe principal | Descripción del sistema, arquitectura, módulos y decisiones técnicas. |
+| Jira | Sprints, tareas, subtareas, responsables, fechas y criterios de aceptación. |
+| Backend | Rutas, servicios, modelos, esquemas, autenticación, permisos, auditoría y soft delete. |
+| Frontend | Rutas, componentes, páginas, consumo de API, WebEditor y protección visual. |
+| Swagger/OpenAPI | Documentación de endpoints y contratos técnicos. |
+| Playwright / E2E | Validación de flujos críticos desde la interfaz. |
+| k6 | Evidencia de rendimiento. |
+| OWASP ZAP / Snyk | Evidencia de seguridad y vulnerabilidades. |
+| SonarCloud/SonarQube | Calidad, duplicación, mantenibilidad, bugs y vulnerabilidades. |
+| Jenkins | Integración continua y ejecución técnica de pipeline de prueba. |
+| MkDocs | Documentación navegable y ordenada del sistema y auditoría. |
 
-- Qué requisito originó una funcionalidad.
-- En qué sprint se trabajó.
-- Qué módulo la implementa.
-- Qué pruebas la validan.
-- Qué evidencia la sustenta.
+## Ejemplo de trazabilidad
 
-!!! tip "Frase de defensa"
-    No basta con decir que algo existe; la auditoría debe demostrarlo con evidencia verificable.
+| Elemento | Ejemplo |
+|---|---|
+| Requisito | Gestión de sitios por tenant. |
+| Historia / tarea | Crear, editar y listar sitios en Jira. |
+| Backend | Endpoints, servicios y modelos relacionados con sitios. |
+| Frontend | Pantallas y formularios de administración de sitios. |
+| Prueba | Prueba funcional o E2E del flujo de sitios. |
+| Evidencia | Captura, reporte Playwright, Swagger, código o resultado de ejecución. |
+| Conclusión | Cumple si se observa coherencia suficiente entre todos los elementos. |
+
+## Por qué importa
+
+Sin trazabilidad, una auditoría puede quedar como opinión. Con trazabilidad, cada conclusión se puede justificar con evidencia.
+
+<div class="defense-box" markdown>
+
+**Frase para exposición:**  
+“La trazabilidad permite demostrar que cada conclusión del checklist se sustenta en evidencias y no solo en una afirmación del equipo.”
+
+</div>

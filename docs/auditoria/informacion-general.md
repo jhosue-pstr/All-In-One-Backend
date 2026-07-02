@@ -1,21 +1,35 @@
 # Información general de la auditoría
 
-La información general identifica formalmente el proyecto de auditoría.
+Esta sección resume los datos formales que identifican el proyecto de auditoría.
 
-## Datos clave
-
-| Campo | Descripción |
+| Campo | Detalle |
 |---|---|
-| Proyecto | Auditoría SDLC de la plataforma All-InOne. |
+| Nombre del proyecto | Auditoría del Ciclo de Vida del Desarrollo de Software de la Plataforma All-InOne. |
 | Código | AUD-SDLC-ALL-INONE-2026-001. |
+| Versión | 1.0. |
+| Fecha de elaboración | 23 de junio de 2026. |
+| Inicio estimado | 30 de junio de 2026. |
+| Cierre estimado | 09 de septiembre de 2026. |
+| Patrocinador | Universidad Peruana Unión - Facultad de Ingeniería y Arquitectura. |
+| Auditor líder | Ing. Ruben Roque Sucari. |
+| Equipo auditor | Integrantes del grupo. |
 | Sistema auditado | All-InOne. |
 | Organización auditada | ModularSoft - Grupo 4. |
-| Contexto | Uso interno académico. |
-| Patrocinador | Universidad Peruana Unión. |
+| Clasificación | Confidencial - uso interno académico. |
 
-## Cómo entenderlo
+## ¿Por qué importa esta información?
 
-Este punto funciona como la ficha de identidad del documento. Permite saber qué se audita, quién participa y bajo qué contexto.
+Estos datos permiten identificar formalmente qué se audita, quién participa, en qué periodo se realiza la revisión y bajo qué clasificación se maneja la información.
 
-!!! tip "Frase de defensa"
-    La información general permite identificar formalmente la auditoría y diferenciarla de otros documentos o versiones del proyecto.
+En una auditoría, la información general cumple una función similar a una “ficha de control”. Evita ambigüedades y permite que los entregables posteriores tengan trazabilidad con un código, una versión y un periodo definido.
+
+<div class="defense-box" markdown>
+
+**Respuesta rápida para exposición:**  
+“La información general sirve para formalizar la auditoría, identificar el sistema evaluado, el responsable, las fechas de ejecución y la clasificación del documento.”
+
+</div>
+
+## Relación con MkDocs
+
+En MkDocs, esta sección funciona como la portada formal de la auditoría. Permite que cualquier lector entienda que la documentación técnica del sistema y la documentación de auditoría pertenecen al mismo proyecto académico.
