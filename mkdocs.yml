@@ -54,6 +54,8 @@ nav:
           - Capas internas: arquitectura/capas.md
           - Multitenancy: arquitectura/multitenancy.md
           - Módulos del sistema: arquitectura/modulos.md
+          - Modelo de datos: backend/modelo-datos.md
+          - Flujos principales: backend/flujos-principales.md
           - Auditoría y soft delete: arquitectura/auditoria-soft-delete.md
       - API:
           - Resumen de endpoints: api/resumen-endpoints.md
@@ -79,6 +81,7 @@ nav:
       - Evidencias SDLC:
           - Evidencias técnicas: sdlc/evidencias.md
           - Limitaciones: sdlc/limitaciones.md
+          - Guía de mantenimiento: backend/guia-mantenimiento.md
   - Auditoría SDLC:
       - Inicio auditoría: auditoria/index.md
       - Project Charter:
