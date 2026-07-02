@@ -1,41 +1,18 @@
-# Controles principales de seguridad
+# Controles de seguridad
 
-El backend incorpora controles orientados a proteger una plataforma SaaS multitenant.
+El backend contempla controles orientados a proteger el acceso y la información.
 
-## Controles implementados o considerados
+## Controles principales
 
-| Control | Descripción |
-|---|---|
-| JWT | Permite autenticar usuarios mediante tokens. |
-| RBAC | Restringe acciones según roles y permisos. |
-| Rutas protegidas | Evita acceso no autorizado a endpoints internos. |
-| Multitenancy | Separa información por sitio o tenant. |
-| Validación de entradas | Reduce errores y entradas inválidas. |
-| Auditoría | Registra acciones relevantes. |
-| Soft delete | Preserva información importante ante eliminaciones. |
-| CORS | Controla orígenes permitidos para llamadas desde frontend. |
+- Autenticación JWT.
+- Control de acceso por roles y permisos.
+- Protección de endpoints críticos.
+- Validación de entradas.
+- Manejo de errores.
+- Aislamiento por tenant.
+- Auditoría de acciones relevantes.
+- Soft delete.
 
-## Seguridad por capas
+## Enfoque de auditoría
 
-```text
-Usuario
-  ↓
-Token JWT
-  ↓
-Validación de autenticación
-  ↓
-Validación de rol/permisos
-  ↓
-Validación de sitio/tenant
-  ↓
-Acceso al recurso
-```
-
-## Riesgos que se deben controlar
-
-- Acceso sin autenticación.
-- Escalada de privilegios.
-- Acceso cruzado entre tenants.
-- Manipulación de recursos de otro sitio.
-- Eliminación física no controlada.
-- Exposición de información sensible en respuestas.
+La auditoría debe comprobar que estos controles no solo estén documentados, sino también evidenciados en código, pruebas o reportes.

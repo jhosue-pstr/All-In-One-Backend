@@ -1,29 +1,11 @@
 # Analítica
 
-El módulo Analítica registra visitas, eventos y métricas asociadas a un sitio.
+El módulo de Analítica registra información sobre visitas, eventos, sesiones y métricas del sitio.
 
-## Prefijo
+## Propósito
 
-```text
-/api/modules/analitica
-```
+Permite que el administrador tenga una visión básica del comportamiento de los usuarios dentro del sitio.
 
-## Endpoints
+## Consideración
 
-| Método | Ruta | Función |
-|---|---|---|
-| POST | `/api/modules/analitica/{site_id}/visitas` | Registra una visita. |
-| POST | `/api/modules/analitica/{site_id}/eventos` | Registra un evento. |
-| GET | `/api/modules/analitica/{site_id}/dashboard` | Obtiene métricas del sitio. |
-
-## Usos principales
-
-- Medir visitas del sitio.
-- Registrar eventos de navegación o interacción.
-- Construir indicadores para el panel administrativo.
-
-## Consideraciones
-
-- Las métricas deben asociarse al sitio correcto.
-- La información debe evitar cruces entre tenants.
-- El dashboard debe mostrar datos filtrados por `site_id`.
+Durante la auditoría, este módulo debe revisarse según su grado real de implementación, evidencia técnica y pruebas disponibles.

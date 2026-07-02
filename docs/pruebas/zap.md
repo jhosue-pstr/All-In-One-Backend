@@ -1,35 +1,14 @@
 # OWASP ZAP
 
-OWASP ZAP se utiliza para ejecutar pruebas dinámicas de seguridad sobre endpoints del backend.
+OWASP ZAP se utiliza para pruebas de seguridad automatizadas.
 
-## Propósito
+## Qué se revisa
 
-Detectar posibles vulnerabilidades como:
-
-- Errores de validación de entrada.
 - Respuestas inseguras.
-- Cabeceras de seguridad faltantes.
-- Exposición de información.
-- Comportamientos inesperados ante entradas maliciosas.
-
-## Ubicación relacionada
-
-```text
-zap/
-docker-compose.zap.yml
-```
+- Configuraciones expuestas.
+- Errores de servidor.
+- Posibles vulnerabilidades comunes.
 
 ## Alcance
 
-La revisión con ZAP corresponde a una prueba automatizada o semiautomatizada de seguridad en entorno de prueba.
-
-!!! warning "No es pentesting completo"
-    Esta validación no representa una prueba de penetración ofensiva avanzada ni una certificación formal de seguridad.
-
-## Evidencia esperada
-
-- URL o endpoint evaluado.
-- Alertas encontradas.
-- Severidad de las alertas.
-- Recomendaciones.
-- Estado de corrección o aceptación del riesgo.
+La revisión con ZAP no reemplaza un pentesting profundo. En el contexto del proyecto, funciona como evidencia de revisión de seguridad en entorno de prueba.

@@ -1,21 +1,16 @@
 # Limitaciones
 
-Esta documentación debe interpretarse dentro del contexto académico del proyecto All-InOne.
+La documentación reconoce limitaciones propias del contexto académico.
 
 ## Limitaciones principales
 
-| Limitación | Explicación |
-|---|---|
-| No producción formal | El despliegue corresponde a prueba académica, no a una empresa real. |
-| No certificación externa | La documentación no equivale a certificación ISO, CMMI o seguridad. |
-| No pentesting profundo | Las pruebas ZAP no reemplazan una prueba de penetración ofensiva formal. |
-| No revisión línea por línea | La auditoría se centra en componentes principales y evidencia relevante. |
-| Módulos parciales o futuros | Algunos módulos pueden estar planificados o parcialmente implementados. |
-| Manuales operativos limitados | No se evidencia manual formal para operación empresarial real. |
+- No representa certificación oficial.
+- No equivale a operación productiva empresarial.
+- No garantiza disponibilidad permanente.
+- No reemplaza pruebas de penetración profundas.
+- No implica revisión línea por línea de todo el código.
+- Puede existir diferencia entre documentación y versión actual del código.
 
-## Cómo presentar estas limitaciones
+## Valor
 
-Se recomienda explicar que el proyecto sí cuenta con desarrollo, pruebas, documentación y evidencias técnicas; sin embargo, no ha pasado por un proceso formal de implementación productiva para una organización externa.
-
-!!! success "Forma correcta de defenderlo"
-    All-InOne cuenta con despliegue y validación técnica en entorno de prueba, pero no con puesta en producción oficial. Por ello, las evidencias deben evaluarse como parte de un proyecto académico de ingeniería de software.
+Reconocer limitaciones mejora la transparencia del proyecto y fortalece la defensa de auditoría.

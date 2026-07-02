@@ -1,43 +1,25 @@
 # Checklist SDLC
 
-El **Checklist SDLC** es el instrumento operativo de verificación de la auditoría. Permite revisar de forma ordenada si el proyecto cuenta con evidencias suficientes para cada objetivo de control.
+El Checklist SDLC es el instrumento operativo de evaluación.
 
-## Criterio de marcado
+## Qué evalúa
 
-En el checklist se marca:
-
-- **Cumple**, cuando existe evidencia suficiente.
-- **No cumple**, cuando no existe evidencia formal suficiente o el proyecto no llegó a ese nivel de formalidad.
-
-!!! note "Criterio conservador"
-    No se marca todo como cumple. En auditoría es mejor reconocer brechas reales y explicar por qué no aplican o no se evidencian completamente.
-
-## Bloques evaluados
-
-| Bloque | Evaluación general |
+| Bloque | Tema |
 |---|---|
-| Metodología SDLC | Cumple en planificación, alcance, entregables y riesgos; no cumple en autorizaciones por fase ni herramientas CASE |
-| Análisis de necesidades | Cumple en requisitos, historias, Jira y trazabilidad; no cumple en análisis costo/beneficio formal por necesidad |
-| Diseño y desarrollo | Cumple en arquitectura, controles, GitHub y CI/CD de prueba; no cumple en aprobación formal de diseño y wiki de codificación |
-| Procedimientos de prueba | Cumple por evidencias de pruebas funcionales, E2E, rendimiento, seguridad y calidad |
-| Implementación | No cumple como implementación productiva formal; solo existe despliegue académico/de prueba |
-| Revisión post-implementación | No cumple porque no hubo operación real posterior a producción |
-| Mantenimiento | No cumple como mantenimiento formal post-producción; sí existe modularidad y componentes reutilizables |
-| Software de sistema | No cumple porque no se modificó ni homologó software base, compiladores o herramientas CASE |
-| Documentación | Cumple en documentación técnica general; algunas brechas dependen de estándares formales de difusión |
+| CL-01 | Metodología SDLC. |
+| CL-02 | Análisis de necesidades. |
+| CL-03 | Diseño y desarrollo. |
+| CL-04 | Procedimientos de prueba. |
+| CL-05 | Procedimientos de implementación. |
+| CL-06 | Revisión post-implementación. |
+| CL-07 | Mantenimiento de aplicaciones. |
+| CL-08 | Control sobre software de sistema. |
+| CL-09 | Estándares de documentación. |
 
-## Relación con MkDocs
+## Criterio utilizado
 
-MkDocs fortalece la evidencia documental porque organiza la información técnica del backend y frontend, además de la sección de auditoría SDLC.
+Se marca **Cumple** cuando hay evidencia suficiente. Se marca **No Cumple** cuando no existe evidencia formal, cuando el ítem no aplica al contexto o cuando el proyecto no llegó a producción formal.
 
-Sin embargo, MkDocs no reemplaza:
+## Lectura general
 
-- autorizaciones formales;
-- herramientas CASE;
-- implementación productiva formal;
-- mantenimiento post-producción;
-- certificaciones oficiales.
-
-## Idea clave
-
-El checklist demuestra que el proyecto tiene fortalezas en planificación, desarrollo, pruebas, seguridad y documentación, pero también reconoce límites propios de un proyecto académico sin producción empresarial formal.
+El proyecto es fuerte en metodología, requisitos, diseño, pruebas y documentación. Presenta limitaciones en implementación productiva, post-implementación, mantenimiento formal y software de sistema.

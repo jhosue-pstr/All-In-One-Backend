@@ -1,46 +1,29 @@
 # Auditoría y soft delete
 
-El backend contempla mecanismos transversales para mejorar la trazabilidad y preservar información importante.
+El sistema incorpora mecanismos orientados a mejorar trazabilidad y conservación de información.
 
 ## Auditoría
 
-La auditoría permite registrar acciones relevantes realizadas en el sistema. Su utilidad principal es dejar evidencia de operaciones críticas para revisión posterior.
+La auditoría permite registrar acciones relevantes realizadas por usuarios o procesos del sistema.
 
-### Acciones que deberían auditarse
+Ejemplos de acciones auditables:
 
-- Creación de registros importantes.
-- Modificación de datos críticos.
-- Eliminación lógica de entidades.
-- Cambios de roles o permisos.
+- Creación de registros.
+- Actualización de datos.
+- Eliminación lógica.
+- Cambios de estado.
 - Activación o desactivación de módulos.
-- Operaciones administrativas sobre sitios.
 
 ## Soft delete
 
-El **soft delete** consiste en marcar un registro como eliminado sin borrarlo físicamente de la base de datos.
+El soft delete evita eliminar registros físicamente de forma inmediata. En su lugar, marca el registro como eliminado o inactivo.
 
-```text
-Eliminación física:
-Registro desaparece de la base de datos.
+## Valor para el sistema
 
-Soft delete:
-Registro se conserva, pero queda marcado como inactivo/eliminado.
-```
+- Mejora trazabilidad.
+- Facilita recuperación o revisión posterior.
+- Reduce riesgo de pérdida accidental.
+- Ayuda a cumplir buenas prácticas de control.
 
-## Beneficios
-
-| Beneficio | Explicación |
-|---|---|
-| Trazabilidad | Permite saber qué ocurrió con un registro. |
-| Recuperación | Facilita restaurar información si fue eliminada por error. |
-| Auditoría | Mantiene evidencia para revisiones posteriores. |
-| Seguridad | Reduce el riesgo de pérdida irreversible de datos. |
-
-## Evidencia esperada
-
-Para validar auditoría y soft delete se deben revisar:
-
-- Modelos con campos de estado o eliminación lógica.
-- Servicios que no eliminen físicamente cuando corresponde.
-- Registros de auditoría en operaciones críticas.
-- Pruebas que validen el comportamiento esperado.
+!!! tip "Cómo defenderlo"
+    En exposición puedes decir que auditoría y soft delete son controles transversales que fortalecen seguridad, trazabilidad y mantenibilidad.

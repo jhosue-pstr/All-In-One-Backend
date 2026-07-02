@@ -1,0 +1,71 @@
+:root {
+  --aio-card-radius: 18px;
+}
+
+.md-typeset .hero {
+  padding: 2.2rem;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(63,81,181,.14), rgba(33,150,243,.10));
+  border: 1px solid rgba(63,81,181,.20);
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .hero h1 {
+  margin-bottom: .4rem;
+  font-weight: 800;
+}
+
+.md-typeset .hero p {
+  font-size: 1.02rem;
+  max-width: 760px;
+}
+
+.md-typeset .badge {
+  display: inline-block;
+  padding: .20rem .55rem;
+  border-radius: 999px;
+  background: rgba(63,81,181,.12);
+  color: var(--md-primary-fg-color);
+  font-size: .75rem;
+  font-weight: 700;
+  margin-right: .3rem;
+  margin-bottom: .3rem;
+}
+
+.md-typeset .decision-box {
+  border-left: 5px solid var(--md-primary-fg-color);
+  background: rgba(63,81,181,.08);
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+}
+
+.md-typeset .kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .8rem;
+  margin: 1rem 0 1.4rem;
+}
+
+.md-typeset .kpi-card {
+  padding: 1rem;
+  border-radius: var(--aio-card-radius);
+  border: 1px solid rgba(127,127,127,.22);
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .kpi-card strong {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--md-primary-fg-color);
+}
+
+.md-typeset .small-note {
+  font-size: .85rem;
+  opacity: .82;
+}
+
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li {
+  border-radius: var(--aio-card-radius);
+}

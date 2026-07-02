@@ -1,56 +1,59 @@
-# All-InOne Backend
+---
+title: Inicio
+---
 
-Bienvenido a la documentación del **backend de All-InOne**, una plataforma SaaS multitenant desarrollada por **ModularSoft - Grupo 4**.
+<div class="hero" markdown>
 
-Desde esta página puedes ingresar a dos bloques principales: la documentación técnica del backend y la documentación de auditoría SDLC basada en el Project Charter.
+# All-InOne Backend y Auditoría SDLC
 
-<div class="grid cards" markdown>
+Documentación técnica y documentación de auditoría del proyecto **All-InOne**, desarrollado por **ModularSoft - Grupo 4** en el contexto académico de Ingeniería de Software II.
 
--   :material-server: **Documentación del Backend**
-
-    Arquitectura, estructura del repositorio, API, seguridad, pruebas, calidad y despliegue de prueba del backend.
-
-    [Ver backend](arquitectura/vision-general.md)
-
--   :material-clipboard-check: **Auditoría SDLC**
-
-    Project Charter, criterios, metodología, riesgos, checklist SDLC, entregables y limitaciones de la auditoría.
-
-    [Ver auditoría](auditoria/index.md)
+<span class="badge">Backend FastAPI</span>
+<span class="badge">Monolito modular</span>
+<span class="badge">SaaS multitenant</span>
+<span class="badge">Auditoría SDLC</span>
+<span class="badge">MkDocs Material</span>
 
 </div>
 
-!!! info "Alcance de esta documentación"
-    Esta documentación describe el backend como parte de un proyecto académico. El sistema cuenta con despliegue y evidencias técnicas de prueba, pero no representa una implementación productiva formal para una empresa real.
+## ¿Qué deseas revisar?
 
-## ¿Qué contiene la documentación del backend?
+<div class="grid cards" markdown>
 
-- Arquitectura de monolito modular.
-- Estructura del backend.
-- API y endpoints principales.
-- Seguridad, JWT, roles y permisos.
-- Multitenancy por sitio o tenant.
-- Pruebas con Pytest, k6, OWASP ZAP y herramientas de calidad.
-- Despliegue técnico de prueba.
+-   :material-server-security: **Documentación del Backend**
 
-## ¿Qué contiene la auditoría SDLC?
+    Arquitectura, instalación, API, módulos, pruebas, seguridad, despliegue de prueba y evidencias técnicas del backend.
 
-- Project Charter de Auditoría SDLC.
-- Objetivos, alcance y exclusiones.
-- Criterios de auditoría.
-- Metodología de auditoría.
-- Entregables y stakeholders.
-- Cronograma y presupuesto estimado.
-- Riesgos, factores críticos, supuestos y restricciones.
-- Checklist SDLC aplicado al proyecto.
+    [Entrar a Backend](backend/index.md)
 
-## Lectura recomendada
+-   :material-clipboard-check-outline: **Auditoría SDLC**
 
-Para entender el sitio rápidamente, revisar en este orden:
+    Project Charter, criterios, metodología, checklist, riesgos, entregables, supuestos, restricciones y defensa para exposición.
 
-1. [Visión general del backend](arquitectura/vision-general.md)
-2. [Estructura del repositorio](arquitectura/estructura.md)
-3. [Resumen de endpoints](api/resumen-endpoints.md)
-4. [Controles de seguridad](seguridad/controles.md)
-5. [Auditoría SDLC](auditoria/index.md)
-6. [Checklist SDLC](auditoria/checklist-sdlc.md)
+    [Entrar a Auditoría SDLC](auditoria/index.md)
+
+</div>
+
+## Lectura rápida
+
+<div class="kpi-grid" markdown>
+<div class="kpi-card" markdown>
+<strong>2</strong>
+Rutas principales: documentación técnica y auditoría.
+</div>
+<div class="kpi-card" markdown>
+<strong>SDLC</strong>
+Enfoque de evaluación del ciclo de vida del software.
+</div>
+<div class="kpi-card" markdown>
+<strong>Backend</strong>
+FastAPI, SQLAlchemy, JWT, RBAC, auditoría y soft delete.
+</div>
+<div class="kpi-card" markdown>
+<strong>Académico</strong>
+Documentación para sustentación y mejora, no certificación oficial.
+</div>
+</div>
+
+!!! tip "Cómo usar este sitio"
+    Si el docente pregunta por el **sistema**, entra a la documentación del backend. Si pregunta por la **auditoría**, entra a Auditoría SDLC.

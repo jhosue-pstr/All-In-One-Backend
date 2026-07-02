@@ -1,33 +1,18 @@
 # Jenkins y calidad
 
-El backend incluye un `Jenkinsfile`, lo que permite documentar un flujo de integración continua para validar el proyecto.
+Jenkins permite automatizar tareas de integración continua.
 
-## Archivo principal
-
-```text
-Jenkinsfile
-```
-
-## Propósito de Jenkins
-
-Jenkins puede usarse para automatizar:
+## Actividades posibles
 
 - Instalación de dependencias.
 - Ejecución de pruebas.
+- Construcción de artefactos.
 - Análisis de calidad.
-- Integración con herramientas externas.
-- Generación de evidencias técnicas.
+- Generación de evidencias.
 
-## Herramientas relacionadas
+## Relación con DevSecOps
 
-| Herramienta | Uso |
-|---|---|
-| Pytest | Pruebas automatizadas. |
-| SonarCloud / SonarQube | Análisis estático y métricas de calidad. |
-| Snyk | Análisis de dependencias y vulnerabilidades. |
-| k6 | Rendimiento. |
-| OWASP ZAP | Seguridad dinámica. |
+Jenkins se complementa con herramientas como SonarCloud/SonarQube, Snyk, k6 y OWASP ZAP para fortalecer calidad y seguridad.
 
-## Consideración importante
-
-El flujo documentado corresponde a integración y validación técnica en entorno académico/de prueba. No implica necesariamente un despliegue productivo formal.
+!!! note "Importante"
+    En este proyecto, Jenkins se entiende como validación técnica académica/de prueba, no como despliegue productivo formal.

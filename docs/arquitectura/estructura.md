@@ -1,19 +1,10 @@
-# Estructura del repositorio
+# Estructura del repositorio backend
 
-La estructura del backend está organizada para separar API, modelos, esquemas, servicios, configuración, pruebas y módulos funcionales.
+La estructura del backend está organizada para separar aplicación, pruebas, evidencias y recursos estáticos.
 
 ```text
-All-In-One-Backend/
+BACKEND/
 ├─ app/
-│  ├─ api/
-│  ├─ core/
-│  ├─ db/
-│  ├─ models/
-│  ├─ packages/
-│  │  └─ modulos/
-│  ├─ schemas/
-│  ├─ service/
-│  └─ main.py
 ├─ k6/
 ├─ media/
 ├─ static/
@@ -22,30 +13,23 @@ All-In-One-Backend/
 ├─ zap/
 ├─ Dockerfile
 ├─ Jenkinsfile
-├─ docker-compose.k6.yml
-├─ docker-compose.zap.yml
-├─ pytest.ini
 ├─ requirements.txt
-└─ requirements.lock
+├─ pytest.ini
+├─ docker-compose.k6.yml
+└─ docker-compose.zap.yml
 ```
 
 ## Carpetas principales
 
-| Carpeta / archivo | Descripción |
+| Carpeta / archivo | Propósito |
 |---|---|
-| `app/main.py` | Punto de entrada de la aplicación FastAPI. Registra middleware, rutas y carpetas estáticas. |
-| `app/api/` | Routers principales del sistema: autenticación, sitios, módulos, plantillas, roles, auth público. |
-| `app/core/` | Configuración general, permisos, middleware y elementos base. |
-| `app/db/` | Configuración de base de datos y scripts de seed. |
-| `app/models/` | Modelos principales del sistema. |
-| `app/schemas/` | Esquemas Pydantic para entrada y salida de datos. |
-| `app/service/` | Lógica de negocio de componentes principales. |
-| `app/packages/modulos/` | Módulos funcionales como Blog, Tienda, Analítica y Auth Público. |
-| `test/` | Pruebas automatizadas del backend. |
-| `k6/` | Pruebas de rendimiento. |
+| `app/` | Código principal del backend. |
+| `test/` | Pruebas del backend. |
+| `k6/` | Scripts o recursos para pruebas de rendimiento. |
 | `zap/` | Evidencias o configuración relacionada con pruebas de seguridad. |
-| `media/`, `uploads/`, `static/` | Recursos públicos y archivos servidos por el backend. |
+| `media/`, `uploads/`, `static/` | Archivos estáticos, imágenes o recursos cargados. |
+| `Dockerfile` | Construcción del contenedor del backend. |
+| `Jenkinsfile` | Pipeline de integración continua. |
 
-## Observación de auditoría
-
-La estructura refleja un enfoque de **monolito modular**, ya que los módulos están dentro del mismo backend, pero se separan por dominios funcionales.
+!!! info "Uso en auditoría"
+    Esta estructura sirve como evidencia para revisar organización, pruebas, seguridad y mantenibilidad del backend.

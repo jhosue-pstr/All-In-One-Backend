@@ -1,36 +1,19 @@
-# Evidencias del backend para auditoría SDLC
+# Evidencias técnicas SDLC
 
-Esta sección resume los artefactos del backend que pueden utilizarse como evidencia de auditoría.
+Esta sección resume las evidencias técnicas que apoyan la auditoría SDLC.
 
-## Evidencias por fase SDLC
+## Evidencias del backend
 
-| Fase SDLC | Evidencia del backend |
-|---|---|
-| Requisitos | Historias, criterios y módulos documentados en Jira e informe del proyecto. |
-| Diseño | Arquitectura de monolito modular, estructura por capas y módulos. |
-| Construcción | Código fuente en `app/`, modelos, servicios, rutas y esquemas. |
-| Pruebas | Carpeta `test/`, Pytest, k6, ZAP y reportes de calidad. |
-| Implementación | Dockerfile, Jenkinsfile, Swagger, despliegue de prueba. |
-| Seguridad | JWT, RBAC, multitenancy, ZAP, Snyk, auditoría y soft delete. |
-| Mantenimiento | Modularidad, separación de responsabilidades y control de versiones. |
-| Documentación | MkDocs, README, Swagger/OpenAPI y documentos del proyecto. |
+- Código fuente.
+- Estructura modular.
+- Dockerfile.
+- Jenkinsfile.
+- Pruebas backend.
+- Reportes de rendimiento.
+- Reportes de seguridad.
+- Swagger/OpenAPI.
+- Documentación MkDocs.
 
-## Evidencias técnicas principales
+## Cómo se usan
 
-- `app/main.py`
-- `app/api/`
-- `app/models/`
-- `app/schemas/`
-- `app/service/`
-- `app/packages/modulos/`
-- `test/`
-- `k6/`
-- `zap/`
-- `Jenkinsfile`
-- `Dockerfile`
-- `pytest.ini`
-- `requirements.txt`
-
-## Uso en auditoría
-
-Estas evidencias permiten contrastar lo documentado con lo implementado, identificando conformidades, brechas y oportunidades de mejora.
+Estas evidencias permiten contrastar lo documentado contra la implementación real del backend.

@@ -1,36 +1,31 @@
-# Justificación, Problema y Oportunidad
+# Justificación y problema u oportunidad
 
 ## Justificación
 
-La auditoría SDLC es necesaria porque All-InOne integra varias funcionalidades críticas. No basta con que el sistema funcione; también debe existir evidencia de que fue planificado, desarrollado, probado y documentado correctamente.
+La auditoría se justifica porque All-InOne no es una aplicación simple. Es una plataforma modular, multitenant y con controles de seguridad.
 
-La auditoría permite verificar:
+Se necesita revisar:
 
-- trazabilidad entre requisitos, módulos y pruebas;
-- coherencia entre documentación y código;
-- calidad del backend y frontend;
-- seguridad, autenticación, roles y permisos;
-- aislamiento multitenant;
-- evidencia de pruebas y reportes de calidad;
-- uso de buenas prácticas de ingeniería de software.
+- Requisitos.
+- Arquitectura.
+- Implementación.
+- Pruebas.
+- Seguridad.
+- Documentación.
+- Trazabilidad.
 
 ## Problema identificado
 
-El principal problema no es que el sistema esté mal, sino que por su complejidad pueden existir diferencias entre lo documentado y lo realmente implementado.
+El principal problema no es que el sistema no funcione, sino que puede existir diferencia entre:
 
-Posibles situaciones a revisar:
-
-- módulos documentados como implementados, pero en estado parcial o planificado;
-- pruebas que no cubren todos los flujos críticos;
-- evidencias generadas en distintas fechas o versiones;
-- diferencias entre arquitectura declarada y código real;
-- necesidad de validar seguridad y multitenancy.
+- Lo documentado.
+- Lo implementado.
+- Lo probado.
+- Lo planificado para futuras versiones.
 
 ## Oportunidad
 
-La auditoría representa una oportunidad para fortalecer el proyecto antes de su presentación final o futuras mejoras.
+La auditoría permite ordenar evidencias, identificar brechas, fortalecer la calidad y dejar recomendaciones para futuras mejoras.
 
-Permite ordenar evidencias, identificar brechas, proponer recomendaciones y dejar una base técnica más sólida para futuras versiones de All-InOne.
-
-!!! tip "Forma simple de explicarlo"
-    La auditoría no se plantea porque el proyecto esté mal, sino porque es complejo y necesita ser validado con evidencia.
+!!! success "Idea principal"
+    La auditoría se realiza para validar coherencia, no para sancionar el proyecto.

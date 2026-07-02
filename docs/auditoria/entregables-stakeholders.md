@@ -1,46 +1,26 @@
-# Entregables y Stakeholders
+# Entregables y stakeholders
 
-## Entregables de la auditoría
+## Entregables principales
 
-Los entregables son los documentos que permiten demostrar que la auditoría fue realizada de manera ordenada.
-
-| Entregable | Función |
+| Entregable | Propósito |
 |---|---|
-| Project Charter | Formaliza el inicio de la auditoría |
-| Plan de Auditoría | Detalla actividades, recursos y procedimientos |
-| Checklist SDLC | Instrumento de verificación |
-| Registro de evidencias | Consolida pruebas, documentos y artefactos revisados |
-| Papeles de trabajo | Registra procedimientos aplicados |
-| Matriz de hallazgos | Organiza observaciones, criterios, evidencia e impacto |
-| Matriz de riesgos | Evalúa riesgos derivados de hallazgos |
-| Informe preliminar | Permite revisión antes del informe final |
-| Informe final | Presenta conclusiones y recomendaciones |
-| Plan de acción correctiva | Define acciones frente a hallazgos |
-| Acta de cierre | Formaliza el cierre de auditoría |
+| Project Charter | Formaliza el inicio de la auditoría. |
+| Plan de Auditoría | Define procedimientos detallados. |
+| Checklist SDLC | Instrumento de verificación. |
+| Registro de evidencias | Organiza la evidencia recopilada. |
+| Papeles de trabajo | Sustentan procedimientos aplicados. |
+| Matriz de hallazgos | Registra observaciones y recomendaciones. |
+| Matriz de riesgos | Valora riesgos detectados. |
+| Informe final | Consolida resultados. |
+| Plan de acción correctiva | Define acciones de mejora. |
+| Acta de cierre | Formaliza la finalización. |
 
-## Stakeholders de auditoría
+## Stakeholders
 
-| Stakeholder | Rol |
-|---|---|
-| Auditor líder | Dirige y coordina la auditoría |
-| Equipo auditor | Ejecuta procedimientos y recopila evidencia |
-| Patrocinador | Respalda la auditoría |
-| Profesor responsable | Supervisa el cumplimiento académico |
-| ModularSoft | Equipo auditado |
+Se dividen en dos grupos:
 
-## Stakeholders del sistema
+- **Stakeholders de auditoría:** auditor líder, equipo auditor, patrocinador, profesor y ModularSoft.
+- **Stakeholders del sistema:** administradores, editores, gestores, usuarios públicos, visitantes y PYMES.
 
-Incluyen los perfiles que interactúan con All-InOne:
-
-- Super Administrador;
-- Administrador del sistema o sitio;
-- Editor de sitios;
-- Gestor de contenido;
-- Gestor de tienda;
-- Auditor o usuario de solo lectura;
-- Usuario público;
-- Visitante web;
-- PYME o propietario del negocio.
-
-!!! tip "Idea clave"
-    Los stakeholders de auditoría participan en la evaluación; los stakeholders del sistema interactúan con All-InOne como usuarios o beneficiarios.
+!!! note "Idea clave"
+    Los entregables evidencian el trabajo realizado; los stakeholders identifican quién participa y quién se ve impactado.

@@ -1,40 +1,18 @@
-# Autenticación interna
+# Autenticación
 
-La autenticación interna corresponde al acceso de usuarios administrativos al panel de All-InOne.
-
-## Prefijo
-
-```text
-/api/auth
-```
-
-## Endpoints
-
-| Método | Ruta | Función |
-|---|---|---|
-| POST | `/api/auth/registro` | Registra un usuario interno. |
-| POST | `/api/auth/inicio` | Inicia sesión y genera token. |
-| GET | `/api/auth/me` | Obtiene información del usuario autenticado. |
-| PUT | `/api/auth/me` | Actualiza información del usuario autenticado. |
+El backend utiliza autenticación basada en **JWT** para identificar usuarios y proteger rutas.
 
 ## Flujo general
 
-```text
-Usuario envía credenciales
-      ↓
-Backend valida credenciales
-      ↓
-Se genera token JWT
-      ↓
-Frontend almacena token
-      ↓
-Solicitudes posteriores usan Authorization: Bearer TOKEN
-```
+1. El usuario inicia sesión.
+2. El backend valida credenciales.
+3. El sistema genera un token JWT.
+4. El frontend usa el token para consumir endpoints protegidos.
+5. El backend valida el token en cada solicitud crítica.
 
-## Aspectos de seguridad
+## Riesgos a revisar
 
-- Validar credenciales.
-- Proteger rutas privadas.
-- Asociar usuario con rol.
-- Aplicar permisos según rol.
-- Evitar exposición innecesaria de datos sensibles.
+- Tokens expirados o mal validados.
+- Rutas sin protección.
+- Roles mal aplicados.
+- Acceso a recursos de otro tenant.

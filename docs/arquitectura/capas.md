@@ -1,39 +1,25 @@
-# Capas y responsabilidades
+# Capas internas
 
-El backend separa responsabilidades en capas lógicas. Esta separación facilita la mantenibilidad y permite auditar mejor la relación entre rutas, lógica de negocio, modelos y esquemas.
+El backend se entiende como una aplicación organizada por capas internas.
 
-## Capas principales
+## Capas comunes
 
-| Capa | Ubicación | Responsabilidad |
-|---|---|---|
-| Entrada API | `app/api/` y `app/packages/modulos/*/routes.py` | Recibir solicitudes HTTP y exponer endpoints. |
-| Servicios | `app/service/` y `app/packages/modulos/*/services.py` | Aplicar reglas de negocio. |
-| Modelos | `app/models/` y `app/packages/modulos/*/models.py` | Representar entidades persistentes. |
-| Esquemas | `app/schemas/` y `app/packages/modulos/*/schemas.py` | Validar entradas y respuestas. |
-| Base de datos | `app/db/` | Configurar conexión, sesiones y datos semilla. |
-| Core | `app/core/` | Configuración, permisos, middleware y utilidades transversales. |
+| Capa | Función |
+|---|---|
+| Rutas / routers | Reciben las solicitudes HTTP. |
+| Servicios | Contienen lógica de negocio. |
+| Modelos | Representan entidades persistentes. |
+| Schemas | Validan entrada y salida de datos. |
+| Base de datos | Almacena información relacional. |
+| Seguridad | Gestiona autenticación, permisos y roles. |
 
-## Ejemplo de flujo
+## Ventajas
 
-```text
-POST /api/sitios/
-      ↓
-Router de sitios
-      ↓
-Servicio de sitio
-      ↓
-Modelo Sitio
-      ↓
-Base de datos
-```
+- Mejora la mantenibilidad.
+- Reduce acoplamiento.
+- Permite probar partes del sistema.
+- Facilita ubicar errores.
+- Ayuda a separar responsabilidades.
 
-## Criterio de revisión
-
-Para validar un módulo, se debe revisar si cuenta con:
-
-- Ruta o endpoint.
-- Servicio o lógica de negocio.
-- Modelo de datos.
-- Esquema de entrada/salida.
-- Pruebas o evidencia funcional.
-- Control de permisos cuando corresponda.
+!!! note "Punto de control SDLC"
+    En auditoría se revisa que la arquitectura declarada coincida con esta organización real del código.

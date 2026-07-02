@@ -1,24 +1,18 @@
-site_name: All-InOne Backend
-site_description: Documentación técnica del backend de la plataforma SaaS multitenant All-InOne
+site_name: All-InOne Backend y Auditoría SDLC
+site_description: Documentación técnica del backend y documentación de auditoría SDLC del proyecto All-InOne
 site_author: ModularSoft - Grupo 4
-repo_name: all-inone-backend
-# repo_url: https://github.com/TU_USUARIO/TU_REPO_BACKEND
 
-copyright: Proyecto académico - ModularSoft / Universidad Peruana Unión
+repo_name: All-InOne Backend
+# repo_url: https://github.com/TU_USUARIO/TU_REPOSITORIO_BACKEND
+
+use_directory_urls: true
 
 theme:
   name: material
   language: es
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.expand
-    - navigation.top
-    - navigation.footer
-    - search.suggest
-    - search.highlight
-    - content.code.copy
-    - content.tabs.link
+  icon:
+    logo: material/server-security
+    repo: fontawesome/brands/github
   palette:
     - scheme: default
       primary: indigo
@@ -32,68 +26,96 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Cambiar a modo claro
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Inicio: index.md
-  - Documentación del Backend:
-      - Primeros pasos:
-          - Instalación local: instalacion.md
-          - Estructura del repositorio: arquitectura/estructura.md
+  - Documentación Backend:
+      - Resumen backend: backend/index.md
+      - Instalación local: instalacion.md
       - Arquitectura:
           - Visión general: arquitectura/vision-general.md
-          - Capas y responsabilidades: arquitectura/capas.md
+          - Estructura del repositorio: arquitectura/estructura.md
+          - Capas internas: arquitectura/capas.md
           - Multitenancy: arquitectura/multitenancy.md
           - Módulos del sistema: arquitectura/modulos.md
           - Auditoría y soft delete: arquitectura/auditoria-soft-delete.md
       - API:
           - Resumen de endpoints: api/resumen-endpoints.md
-          - Autenticación interna: api/autenticacion.md
+          - Autenticación: api/autenticacion.md
           - Sitios, plantillas y módulos: api/sitios-plantillas-modulos.md
-          - Auth público: api/auth-publico.md
+          - Auth Público: api/auth-publico.md
           - Blog: api/blog.md
           - Tienda: api/tienda.md
           - Analítica: api/analitica.md
       - Pruebas y calidad:
           - Estrategia de pruebas: pruebas/estrategia.md
           - Pytest: pruebas/pytest.md
-          - k6 rendimiento: pruebas/k6.md
+          - k6: pruebas/k6.md
           - OWASP ZAP: pruebas/zap.md
           - Jenkins y calidad: pruebas/jenkins-calidad.md
       - Seguridad:
-          - Controles principales: seguridad/controles.md
+          - Controles: seguridad/controles.md
           - Roles y permisos: seguridad/roles-permisos.md
-          - Riesgos y consideraciones: seguridad/riesgos.md
+          - Riesgos técnicos: seguridad/riesgos.md
       - Despliegue:
           - Despliegue de prueba: despliegue/despliegue-prueba.md
-          - Variables y configuración: despliegue/configuracion.md
-      - SDLC Backend:
-          - Evidencias del backend: sdlc/evidencias.md
+          - Configuración: despliegue/configuracion.md
+      - Evidencias SDLC:
+          - Evidencias técnicas: sdlc/evidencias.md
           - Limitaciones: sdlc/limitaciones.md
   - Auditoría SDLC:
-      - Inicio Auditoría: auditoria/index.md
-      - Project Charter: auditoria/project-charter.md
-      - Antecedentes: auditoria/antecedentes.md
-      - Justificación y problema: auditoria/justificacion-problema.md
-      - Objetivos, alcance y exclusiones: auditoria/objetivos-alcance.md
-      - Criterios y metodología: auditoria/criterios-metodologia.md
-      - Entregables y stakeholders: auditoria/entregables-stakeholders.md
-      - Cronograma y presupuesto: auditoria/cronograma-presupuesto.md
-      - Riesgos y factores críticos: auditoria/riesgos-factores.md
-      - Cierre de auditoría: auditoria/cierre-auditoria.md
-      - Checklist SDLC: auditoria/checklist-sdlc.md
+      - Inicio auditoría: auditoria/index.md
+      - Project Charter:
+          - Resumen ejecutivo: auditoria/project-charter.md
+          - Información general: auditoria/informacion-general.md
+          - Antecedentes: auditoria/antecedentes.md
+          - Justificación y problema: auditoria/justificacion-problema.md
+          - Objetivos y alcance: auditoria/objetivos-alcance.md
+      - Ejecución de auditoría:
+          - Criterios de auditoría: auditoria/criterios-auditoria.md
+          - Metodología: auditoria/metodologia.md
+          - Entregables y stakeholders: auditoria/entregables-stakeholders.md
+          - Cronograma y presupuesto: auditoria/cronograma-presupuesto.md
+      - Gestión y cierre:
+          - Riesgos de auditoría: auditoria/riesgos.md
+          - Factores críticos de éxito: auditoria/factores-exito.md
+          - Criterios de aceptación: auditoria/criterios-aceptacion.md
+          - Supuestos y restricciones: auditoria/supuestos-restricciones.md
+      - Checklist SDLC:
+          - Resumen del checklist: auditoria/checklist-sdlc.md
+          - Trazabilidad de evidencias: auditoria/trazabilidad-evidencias.md
+          - Defensa en exposición: auditoria/preguntas-defensa.md
+          - Glosario: auditoria/glosario.md
 
 markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
   - tables
+  - footnotes
   - toc:
       permalink: true
   - pymdownx.details
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

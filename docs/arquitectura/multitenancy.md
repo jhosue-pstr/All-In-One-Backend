@@ -1,52 +1,22 @@
 # Multitenancy
 
-All-InOne está orientado a pequeñas y medianas empresas que pueden gestionar su propio sitio dentro de la plataforma. Por ello, el backend aplica un enfoque multitenant basado en sitios.
+All-InOne se plantea como una plataforma **SaaS multitenant**, donde distintos negocios o sitios pueden usar la misma plataforma manteniendo su información separada.
 
-## Qué significa multitenancy
+## Concepto
 
-En este proyecto, un **tenant** representa un sitio o negocio dentro de la plataforma. Cada sitio debe mantener su información separada de los demás.
+Un tenant representa un sitio, empresa o cliente dentro de la plataforma.
 
-```text
-Plataforma All-InOne
-├─ Sitio A / Tenant A
-│  ├─ Blog
-│  ├─ Tienda
-│  └─ Usuarios públicos
-├─ Sitio B / Tenant B
-│  ├─ Blog
-│  ├─ Tienda
-│  └─ Usuarios públicos
-└─ Sitio C / Tenant C
-```
+## Riesgo principal
 
-## Objetivo del aislamiento
+El riesgo más importante es el acceso cruzado entre tenants, es decir, que un usuario de un sitio pueda ver o modificar información de otro.
 
-El aislamiento multitenant busca evitar que:
+## Controles esperados
 
-- Un usuario vea información de otro sitio.
-- Un administrador modifique módulos de un sitio ajeno.
-- Los productos, posts, pedidos o métricas se mezclen entre tenants.
-- Los usuarios públicos de un sitio accedan a recursos de otro.
+- Asociar registros a un sitio o tenant.
+- Validar permisos antes de acceder a recursos.
+- Filtrar consultas por tenant.
+- Proteger endpoints críticos.
+- Registrar acciones relevantes mediante auditoría.
 
-## Evidencias técnicas esperadas
-
-Para validar multitenancy se deben revisar:
-
-- Uso de identificadores como `sitio_id` o `site_id`.
-- Filtros por sitio en consultas.
-- Endpoints que reciben el identificador del sitio.
-- Asociación de módulos, contenido y usuarios públicos a un sitio.
-- Pruebas que validen separación de información.
-
-## Componentes relacionados
-
-| Componente | Relación con multitenancy |
-|---|---|
-| Sitios | Entidad central del tenant. |
-| Blog | Publicaciones asociadas a un sitio. |
-| Tienda | Productos, categorías y pedidos asociados a un sitio. |
-| Auth Público | Usuarios finales asociados al sitio. |
-| Analítica | Métricas registradas por sitio. |
-
-!!! warning "Riesgo principal"
-    El riesgo más importante del multitenancy es el acceso cruzado entre tenants. Por eso debe verificarse en endpoints, servicios y pruebas.
+!!! warning "Revisión crítica"
+    En auditoría, el multitenancy debe revisarse con especial atención porque impacta directamente en seguridad y confidencialidad.

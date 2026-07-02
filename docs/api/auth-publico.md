@@ -1,32 +1,14 @@
-# Auth público
+# Auth Público
 
-El Auth Público permite que usuarios finales se registren e inicien sesión dentro de un sitio generado por All-InOne.
+Auth Público permite que usuarios externos interactúen con sitios publicados.
 
-## Prefijo
+## Funciones esperadas
 
-```text
-/api/site-auth
-```
+- Registro de usuario público.
+- Inicio de sesión.
+- Acceso a funcionalidades habilitadas por sitio.
+- Separación entre usuarios internos y usuarios públicos.
 
-## Endpoints
+## Consideración de seguridad
 
-| Método | Ruta | Función |
-|---|---|---|
-| POST | `/api/site-auth/registro` | Registra usuario público de un sitio. |
-| POST | `/api/site-auth/login` | Inicia sesión de usuario público. |
-| POST | `/api/site-auth/logout` | Cierra sesión. |
-| GET | `/api/site-auth/me` | Obtiene datos del usuario público autenticado. |
-| PUT | `/api/site-auth/me` | Actualiza datos del usuario público. |
-| GET | `/api/site-auth/usuarios` | Lista usuarios públicos del sitio. |
-| GET | `/api/site-auth/verify` | Verifica token de usuario público. |
-
-## Diferencia con autenticación interna
-
-| Tipo | Usuario | Uso |
-|---|---|---|
-| Auth interna | Administradores, editores, gestores | Panel administrativo. |
-| Auth público | Usuarios finales del sitio | Interacción pública por tenant. |
-
-## Riesgo a controlar
-
-El usuario público de un sitio no debe acceder a datos de otro sitio. Por eso las consultas deben considerar el sitio asociado.
+El usuario público no debe tener acceso al panel administrativo ni a recursos internos del tenant.

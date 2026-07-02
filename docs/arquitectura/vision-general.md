@@ -1,58 +1,32 @@
 # Visión general de arquitectura
 
-El backend de All-InOne utiliza una arquitectura de **Monolito Modular**. Esto significa que el sistema se ejecuta como una sola aplicación backend, pero internamente sus funcionalidades están separadas por módulos, servicios, modelos y rutas.
+All-InOne utiliza una arquitectura de **monolito modular**.
 
-## Decisión arquitectónica
+Esto significa que el sistema se mantiene como una sola aplicación backend, pero internamente se organiza por módulos y responsabilidades.
 
-La arquitectura monolítica modular permite:
+## Por qué monolito modular
 
-- Mantener una sola aplicación backend.
-- Evitar la complejidad de microservicios en un proyecto académico.
-- Separar responsabilidades por dominios funcionales.
-- Facilitar el mantenimiento y la evolución progresiva.
-- Centralizar autenticación, permisos, auditoría y persistencia.
+Este enfoque permite:
 
-!!! note "No es microservicios"
-    El backend no está dividido en servicios independientes desplegados por separado. Los módulos viven dentro del mismo proyecto FastAPI.
+- Mantener el proyecto simple para un contexto académico.
+- Separar funcionalidades por dominios.
+- Facilitar el mantenimiento.
+- Evitar la complejidad de microservicios.
+- Permitir crecimiento progresivo por módulos.
 
-## Flujo general
+## Componentes principales
 
-```text
-Cliente / Frontend
-      ↓
-API FastAPI
-      ↓
-Routers por dominio
-      ↓
-Servicios de negocio
-      ↓
-Modelos SQLAlchemy
-      ↓
-Base de datos relacional
-```
-
-## Componentes transversales
-
-| Componente | Propósito |
-|---|---|
-| JWT | Autenticar usuarios mediante tokens. |
-| RBAC | Autorizar acciones según roles y permisos. |
-| Multitenancy | Asociar información a un sitio o tenant. |
-| Auditoría | Registrar operaciones relevantes. |
-| Soft delete | Evitar eliminación física directa de registros importantes. |
-| Swagger/OpenAPI | Exponer documentación técnica de endpoints. |
-
-## Módulos principales
-
-- Core de autenticación y usuarios.
-- Sitios y tenants.
+- Core Platform.
+- Gestión de sitios o tenants.
 - Plantillas.
 - Módulos activables.
 - Blog.
 - Tienda.
 - Auth Público.
 - Analítica.
+- Auditoría.
+- Soft delete.
 
-## Ventajas para el proyecto
-
-Esta arquitectura es adecuada para All-InOne porque permite integrar en una sola plataforma varias funcionalidades de negocio sin perder orden interno.
+<div class="decision-box" markdown>
+**Decisión arquitectónica:** se eligió monolito modular porque permite separar responsabilidades sin asumir la complejidad operativa de una arquitectura distribuida.
+</div>
